@@ -1097,22 +1097,6 @@ gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_widt
 	return dst;
 }
 
-gdImagePtr Scale(const gdImagePtr src, const unsigned int src_width, const unsigned int src_height, const gdImagePtr dst, const unsigned int new_width, const unsigned int new_height)
-{
-	gdImagePtr tmp_im;
-
-	tmp_im = gdImageCreateTrueColor(new_width, src_height);
-	if (tmp_im == NULL) {
-		return NULL;
-	}
-	_gdScaleHoriz(src, src_width, src_height, tmp_im, new_width, src_height);
-
-	_gdScaleVert(tmp_im, new_width, src_height, dst, new_width, new_height);
-
-	gdFree(tmp_im);
-	return dst;
-}
-
 /*
 	BilinearFixed, BicubicFixed and nearest implementations are rewamped versions of the implementation in CBitmapEx
 	http://www.codeproject.com/Articles/29121/CBitmapEx-Free-C-Bitmap-Manipulation-Class
