@@ -1624,8 +1624,8 @@ gdImagePtr gdImageScaleBicubicFixed(gdImagePtr src, const unsigned int width, co
 	return dst;
 }/* gdImageScaleBicubicFixed*/
 
-gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width, const unsigned int height)
-{
+gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
+                                     const unsigned int height) {
 	const long new_width = MAX(1, width);
 	const long new_height = MAX(1, height);
 	const int src_w = gdImageSX(src);
@@ -1641,7 +1641,7 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width, c
 
 	unsigned int dst_offset_x;
 	unsigned int dst_offset_y = 0;
-	long i;
+	long dst_y;
 
 	/* impact perf a bit, but not that much. Implementation for palette
 	   images can be done at a later point.
@@ -1657,13 +1657,13 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width, c
 
 	dst->saveAlphaFlag = 1;
 
-	for (i=0; i < new_height; i++) {
-		long j;
+	for (dst_y = 0; dst_y < new_height; dst_y++) {
+		long dst_x;
 		dst_offset_x = 0;
 
-		for (j=0; j < new_width; j++) {
-			const gdFixed f_a = gd_mulfx(gd_itofx(i), f_dy);
-			const gdFixed f_b = gd_mulfx(gd_itofx(j), f_dx);
+		for (dst_x = 0; dst_x < new_width; dst_x++) {
+			const gdFixed f_a = gd_mulfx(gd_itofx(dst_y), f_dy);
+			const gdFixed f_b = gd_mulfx(gd_itofx(dst_x), f_dx);
 			const long m = gd_fxtoi(f_a);
 			const long n = gd_fxtoi(f_b);
 			const gdFixed f_f = f_a - gd_itofx(m);
