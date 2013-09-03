@@ -1626,6 +1626,9 @@ gdImagePtr gdImageScaleBicubicFixed(gdImagePtr src, const unsigned int width, co
 	return dst;
 }/* gdImageScaleBicubicFixed*/
 
+#pragma GCC push_options
+#pragma GCC optimize ("unroll-loops")
+
 gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
                                      const unsigned int height) {
 	const long new_width = MAX(1, width);
@@ -1861,6 +1864,8 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
 	}
 	return dst;
 }/* gdImageScaleBicubicFixed2*/
+
+#pragma GCC pop_options
 
 BGD_DECLARE(gdImagePtr) gdImageScale(const gdImagePtr src, const unsigned int new_width, const unsigned int new_height)
 {
