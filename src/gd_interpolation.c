@@ -1018,6 +1018,7 @@ static inline void _gdScaleHoriz(gdImagePtr pSrc, unsigned int src_width, unsign
 		for (y = 0; y < src_height - 1; ++y) {
 			memcpy(pDst->tpixels[y], pSrc->tpixels[y], src_width);
 		}
+		return;
 	}
 
 	contrib = _gdContributionsCalc(dst_width, src_width, (double)dst_width / (double)src_width, pSrc->interpolation);
@@ -1064,6 +1065,7 @@ static inline void _gdScaleVert (const gdImagePtr pSrc, const unsigned int src_w
 		for (y = 0; y < src_height - 1; ++y) {
 			memcpy(pDst->tpixels[y], pSrc->tpixels[y], src_width);
 		}
+		return;
 	}
 
 	contrib = _gdContributionsCalc(dst_height, src_height, (double)(dst_height) / (double)(src_height), pSrc->interpolation);
