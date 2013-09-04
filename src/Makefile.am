@@ -39,7 +39,8 @@ endif
 
 EXTRA_DIST = bdftogd demoin.png entities.html entities.tcl CMakeLists.txt config.h.cmake gd_io_stream.cxx gdpp.cxx msinttypes/inttypes.h msinttypes/stdint.h
 
-include_HEADERS = gd.h gdfx.h gd_io.h gdcache.h gdfontg.h gdfontl.h gdfontmb.h gdfonts.h gdfontt.h entities.h gd_color_map.h gd_errors.h gdpp.h
+include_HEADERS = gd.h gdfx.h gd_io.h gdcache.h gdfontg.h gdfontl.h gdfontmb.h gdfonts.h gdfontt.h entities.h gd_color_map.h \
+                  gd_errors.h gdpp.h fixedpoint.h
 
 lib_LTLIBRARIES = libgd.la
 

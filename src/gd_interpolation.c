@@ -64,6 +64,7 @@ TODO:
 
 #include "gd.h"
 #include "gdhelpers.h"
+#include "fixedpoint.h"
 
 #ifdef _MSC_VER
 # pragma optimize("t", on)
@@ -81,9 +82,9 @@ TODO:
 
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-/* only used here, let do a generic fixed point integers later if required by other
-   part of GD */
+/* Classic fixed-point. */
 typedef long gdFixed;
+
 /* Integer to fixed point */
 #define gd_itofx(x) ((x) << 8)
 
@@ -1638,13 +1639,13 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
 	const long new_height = MAX(1, height);
 	const int src_w = gdImageSX(src);
 	const int src_h = gdImageSY(src);
-	const gdFixed f_dx = gd_ftofx((float)src_w / (float)new_width);
-	const gdFixed f_dy = gd_ftofx((float)src_h / (float)new_height);
-	const gdFixed f_1 = gd_itofx(1);
-	const gdFixed f_2 = gd_itofx(2);
-	const gdFixed f_4 = gd_itofx(4);
-	const gdFixed f_6 = gd_itofx(6);
-	const gdFixed f_gamma = gd_ftofx(1.04f);
+	const Fixed f_dx = ftofx((float)src_w / (float)new_width);
+	const Fixed f_dy = ftofx((float)src_h / (float)new_height);
+	const Fixed f_1 = itofx(1);
+	const Fixed f_2 = itofx(2);
+	const Fixed f_4 = itofx(4);
+	const Fixed f_6 = itofx(6);
+	const Fixed f_gamma = ftofx(1.04f);
 	gdImagePtr dst;
 
 	unsigned int dst_offset_x;
@@ -1670,15 +1671,15 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
 		dst_offset_x = 0;
 
 		for (dst_x = 0; dst_x < new_width; dst_x++) {
-			const gdFixed f_a = gd_mulfx(gd_itofx(dst_y), f_dy);
-			const gdFixed f_b = gd_mulfx(gd_itofx(dst_x), f_dx);
-			const long m = gd_fxtoi(f_a);
-			const long n = gd_fxtoi(f_b);
-			const gdFixed f_f = f_a - gd_itofx(m);
-			const gdFixed f_g = f_b - gd_itofx(n);
+			const Fixed f_a = mulfx(itofx(dst_y), f_dy);
+			const Fixed f_b = mulfx(itofx(dst_x), f_dx);
+			const long m = fxtoi(f_a);
+			const long n = fxtoi(f_b);
+			const Fixed f_f = f_a - itofx(m);
+			const Fixed f_g = f_b - itofx(n);
 			unsigned int src_offset_x[16], src_offset_y[16];
 			long k;
-			register gdFixed f_red = 0, f_green = 0, f_blue = 0, f_alpha = 0;
+			register Fixed f_red = 0, f_green = 0, f_blue = 0, f_alpha = 0;
 			unsigned char red, green, blue, alpha = 0;
 			int *dst_row = dst->tpixels[dst_offset_y];
 
@@ -1805,59 +1806,59 @@ gdImagePtr gdImageScaleBicubicFixed2(gdImagePtr src, const unsigned int width,
 			}
 
 			for (k = -1; k < 3; k++) {
-				const gdFixed f = gd_itofx(k)-f_f;
-				const gdFixed f_fm1 = f - f_1;
-				const gdFixed f_fp1 = f + f_1;
-				const gdFixed f_fp2 = f + f_2;
-				register gdFixed f_a = 0, f_b = 0, f_d = 0, f_c = 0;
-				register gdFixed f_RY;
+				const Fixed f = itofx(k)-f_f;
+				const Fixed f_fm1 = f - f_1;
+				const Fixed f_fp1 = f + f_1;
+				const Fixed f_fp2 = f + f_2;
+				register Fixed f_a = 0, f_b = 0, f_d = 0, f_c = 0;
+				register Fixed f_RY;
 				int l;
 
-				if (f_fp2 > 0) f_a = gd_mulfx(f_fp2, gd_mulfx(f_fp2,f_fp2));
-				if (f_fp1 > 0) f_b = gd_mulfx(f_fp1, gd_mulfx(f_fp1,f_fp1));
-				if (f > 0)     f_c = gd_mulfx(f, gd_mulfx(f,f));
-				if (f_fm1 > 0) f_d = gd_mulfx(f_fm1, gd_mulfx(f_fm1,f_fm1));
+				if (f_fp2 > 0) f_a = mulfx(f_fp2, mulfx(f_fp2,f_fp2));
+				if (f_fp1 > 0) f_b = mulfx(f_fp1, mulfx(f_fp1,f_fp1));
+				if (f > 0)     f_c = mulfx(f, mulfx(f,f));
+				if (f_fm1 > 0) f_d = mulfx(f_fm1, mulfx(f_fm1,f_fm1));
 
-				f_RY = gd_divfx((f_a - gd_mulfx(f_4,f_b) + gd_mulfx(f_6,f_c) - gd_mulfx(f_4,f_d)),f_6);
+				f_RY = divfx((f_a - mulfx(f_4,f_b) + mulfx(f_6,f_c) - mulfx(f_4,f_d)),f_6);
 
 				for (l = -1; l < 3; l++) {
-					const gdFixed f = gd_itofx(l) - f_g;
-					const gdFixed f_fm1 = f - f_1;
-					const gdFixed f_fp1 = f + f_1;
-					const gdFixed f_fp2 = f + f_2;
-					register gdFixed f_a = 0, f_b = 0, f_c = 0, f_d = 0;
-					register gdFixed f_RX, f_R, f_rs, f_gs, f_bs, f_ba;
+					const Fixed f = itofx(l) - f_g;
+					const Fixed f_fm1 = f - f_1;
+					const Fixed f_fp1 = f + f_1;
+					const Fixed f_fp2 = f + f_2;
+					register Fixed f_a = 0, f_b = 0, f_c = 0, f_d = 0;
+					register Fixed f_RX, f_R, f_rs, f_gs, f_bs, f_ba;
 					register int c;
 					const int _k = ((k+1)*4) + (l+1);
 
-					if (f_fp2 > 0) f_a = gd_mulfx(f_fp2,gd_mulfx(f_fp2,f_fp2));
+					if (f_fp2 > 0) f_a = mulfx(f_fp2,mulfx(f_fp2,f_fp2));
 
-					if (f_fp1 > 0) f_b = gd_mulfx(f_fp1,gd_mulfx(f_fp1,f_fp1));
+					if (f_fp1 > 0) f_b = mulfx(f_fp1,mulfx(f_fp1,f_fp1));
 
-					if (f > 0) f_c = gd_mulfx(f,gd_mulfx(f,f));
+					if (f > 0) f_c = mulfx(f,mulfx(f,f));
 
-					if (f_fm1 > 0) f_d = gd_mulfx(f_fm1,gd_mulfx(f_fm1,f_fm1));
+					if (f_fm1 > 0) f_d = mulfx(f_fm1,mulfx(f_fm1,f_fm1));
 
-					f_RX = gd_divfx((f_a-gd_mulfx(f_4,f_b)+gd_mulfx(f_6,f_c)-gd_mulfx(f_4,f_d)),f_6);
-					f_R = gd_mulfx(f_RY,f_RX);
+					f_RX = divfx((f_a-mulfx(f_4,f_b)+mulfx(f_6,f_c)-mulfx(f_4,f_d)),f_6);
+					f_R = mulfx(f_RY,f_RX);
 
 					c = src->tpixels[*(src_offset_y + _k)][*(src_offset_x + _k)];
-					f_rs = gd_itofx(gdTrueColorGetRed(c));
-					f_gs = gd_itofx(gdTrueColorGetGreen(c));
-					f_bs = gd_itofx(gdTrueColorGetBlue(c));
-					f_ba = gd_itofx(gdTrueColorGetAlpha(c));
+					f_rs = itofx(gdTrueColorGetRed(c));
+					f_gs = itofx(gdTrueColorGetGreen(c));
+					f_bs = itofx(gdTrueColorGetBlue(c));
+					f_ba = itofx(gdTrueColorGetAlpha(c));
 
-					f_red += gd_mulfx(f_rs,f_R);
-					f_green += gd_mulfx(f_gs,f_R);
-					f_blue += gd_mulfx(f_bs,f_R);
-					f_alpha += gd_mulfx(f_ba,f_R);
+					f_red += mulfx(f_rs,f_R);
+					f_green += mulfx(f_gs,f_R);
+					f_blue += mulfx(f_bs,f_R);
+					f_alpha += mulfx(f_ba,f_R);
 				}
 			}
 
-			red    = (unsigned char) CLAMP(gd_fxtoi(gd_mulfx(f_red,   f_gamma)),  0, 255);
-			green  = (unsigned char) CLAMP(gd_fxtoi(gd_mulfx(f_green, f_gamma)),  0, 255);
-			blue   = (unsigned char) CLAMP(gd_fxtoi(gd_mulfx(f_blue,  f_gamma)),  0, 255);
-			alpha  = (unsigned char) CLAMP(gd_fxtoi(gd_mulfx(f_alpha,  f_gamma)), 0, 127);
+			red    = (unsigned char) CLAMP(fxtoi(mulfx(f_red,   f_gamma)),  0, 255);
+			green  = (unsigned char) CLAMP(fxtoi(mulfx(f_green, f_gamma)),  0, 255);
+			blue   = (unsigned char) CLAMP(fxtoi(mulfx(f_blue,  f_gamma)),  0, 255);
+			alpha  = (unsigned char) CLAMP(fxtoi(mulfx(f_alpha,  f_gamma)), 0, 127);
 
 			*(dst_row + dst_offset_x) = gdTrueColorAlpha(red, green, blue, alpha);
 
