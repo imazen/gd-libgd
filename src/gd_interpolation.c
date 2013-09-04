@@ -1081,6 +1081,9 @@ gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_widt
 	gdImagePtr tmp_im;
 	gdImagePtr dst;
 
+    /* TODO: this should really skip creating the tmp copy and calling
+     * _gdScaleHoriz() if src_width == new_width. */
+
 	tmp_im = gdImageCreateTrueColor(new_width, src_height);
 	if (tmp_im == NULL) {
 		return NULL;
