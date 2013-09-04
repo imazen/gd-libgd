@@ -82,12 +82,13 @@ TODO:
 
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
+typedef double weight_t;
 
 typedef struct
 {
-	double *Weights;  /* Normalized weights of neighboring pixels */
-	int Left,Right;   /* Bounds of source pixels window */
-} ContributionType;  /* Contirbution information for a single pixel */
+	weight_t *Weights;  /* Normalized weights of neighboring pixels */
+	int Left,Right;     /* Bounds of source pixels window */
+} ContributionType;     /* Contirbution information for a single pixel */
 
 typedef struct
 {
@@ -876,6 +877,7 @@ static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, 
 {
 	unsigned int u = 0;
 	LineContribType *res;
+	weight_t *weights;
 
 	res = (LineContribType *) gdMalloc(sizeof(LineContribType));
 	if (!res) {
@@ -885,8 +887,9 @@ static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, 
 	res->LineLength = line_length;
 	res->ContribRow = (ContributionType *) gdMalloc(line_length * sizeof(ContributionType));
 
+	weights = gdMalloc(windows_size * line_length * sizeof(weight_t));
 	for (u = 0 ; u < line_length ; u++) {
-		res->ContribRow[u].Weights = (double *) gdMalloc(windows_size * sizeof(double));
+		res->ContribRow[u].Weights = &weights[u * windows_size];
 	}
 	return res;
 }
@@ -894,9 +897,10 @@ static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, 
 static inline void _gdContributionsFree(LineContribType * p)
 {
 	unsigned int u;
-	for (u = 0; u < p->LineLength; u++)  {
-		gdFree(p->ContribRow[u].Weights);
-	}
+
+	/* Weights is one contiguous chunk of RAM so we can free it with one op. */
+	gdFree(p->ContribRow[0].Weights);
+
 	gdFree(p->ContribRow);
 	gdFree(p);
 }
