@@ -61,6 +61,7 @@ TODO:
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "gd.h"
 #include "gdhelpers.h"
@@ -887,9 +888,9 @@ static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, 
 	res->LineLength = line_length;
 	res->ContribRow = (ContributionType *) gdMalloc(line_length * sizeof(ContributionType));
 
-	weights = gdMalloc(windows_size * line_length * sizeof(weight_t));
+	weights = gdMalloc((windows_size + 3) * line_length * sizeof(weight_t));
 	for (u = 0 ; u < line_length ; u++) {
-		res->ContribRow[u].Weights = &weights[u * windows_size];
+		res->ContribRow[u].Weights = &weights[u * (windows_size + 3)];
 	}
 	return res;
 }
@@ -934,6 +935,7 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 
 		res->ContribRow[u].Left = iLeft;
 		res->ContribRow[u].Right = iRight;
+        assert(iRight - iLeft <= res->WindowSize);
 
 		/* Cut edge points to fit in filter window in case of spill-off */
 		if (iRight - iLeft + 1 > windows_size)  {
@@ -945,6 +947,7 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 		}
 
 		for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
+            assert(iSrc-iLeft < windows_size);
 			dTotalWeight += (res->ContribRow[u].Weights[iSrc-iLeft] =  scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc)));
 		}
 
@@ -955,6 +958,7 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 
 		if (dTotalWeight > 0.0) {
 			for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
+                assert(iSrc-iLeft < windows_size);
 				res->ContribRow[u].Weights[iSrc-iLeft] /= dTotalWeight;
 			}
 		}
@@ -977,6 +981,7 @@ static inline void _gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImage
 		/* Accumulate each channel */
 		for (i = left; i <= right; i++) {
 			const int left_channel = i - left;
+            assert(left_channel < contrib->WindowSize);
 			r += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetRed(p_src_row[i])));
 			g += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetGreen(p_src_row[i])));
 			b += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetBlue(p_src_row[i])));
@@ -1024,6 +1029,7 @@ static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImag
 		for (i = iLeft; i <= iRight; i++) {
 			const int pCurSrc = pSrc->tpixels[i][uCol];
 			const int i_iLeft = i - iLeft;
+            assert(i_iLeft < contrib->WindowSize);
 			r += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetRed(pCurSrc)));
 			g += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetGreen(pCurSrc)));
 			b += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetBlue(pCurSrc)));
