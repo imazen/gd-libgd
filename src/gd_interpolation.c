@@ -61,6 +61,8 @@ TODO:
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#define NDEBUG  /* Disable assertions by default. */
 #include <assert.h>
 
 #include "gd.h"
