@@ -933,10 +933,6 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 		double dTotalWeight = 0.0;
 		int iSrc;
 
-		res->ContribRow[u].Left = iLeft;
-		res->ContribRow[u].Right = iRight;
-        assert(iRight - iLeft <= res->WindowSize);
-
 		/* Cut edge points to fit in filter window in case of spill-off */
 		if (iRight - iLeft + 1 > windows_size)  {
 			if (iLeft < ((int)src_size - 1 / 2))  {
@@ -945,6 +941,10 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 				iRight--;
 			}
 		}
+
+		res->ContribRow[u].Left = iLeft;
+		res->ContribRow[u].Right = iRight;
+		assert(iRight - iLeft <= res->WindowSize);
 
 		for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
             assert(iSrc-iLeft < windows_size);
