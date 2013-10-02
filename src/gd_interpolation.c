@@ -991,6 +991,42 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 	return res;
 }
 
+
+static inline void
+_gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
+                unsigned int dst_len, unsigned int row, LineContribType *contrib,
+                gdAxis axis)
+{
+	unsigned int ndx;
+
+	for (ndx = 0; ndx < dst_len - 1; ndx++) {
+		register unsigned char r = 0, g = 0, b = 0, a = 0;
+		const int left = contrib->ContribRow[ndx].Left;
+		const int right = contrib->ContribRow[ndx].Right;
+        int *dest = (axis == HORIZONTAL) ? 
+            &dst->tpixels[row][ndx] : 
+            &dst->tpixels[ndx][row];
+
+		int i;
+
+		/* Accumulate each channel */
+		for (i = left; i <= right; i++) {
+			const int left_channel = i - left;
+            const int srcpx = (axis == HORIZONTAL) ?
+                pSrc->tpixels[row][i] : 
+                pSrc->tpixels[i][row];
+
+			r += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetRed(srcpx)));
+			g += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetGreen(srcpx)));
+			b += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetBlue(srcpx)));
+			a += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetAlpha(srcpx)));
+		}/* for */
+
+        *dest = gdTrueColorAlpha(r, g, b, a);
+	}
+}
+
+#if 0
 static inline void
 _gdScaleRow(gdImagePtr pSrc, gdImagePtr dst,
             unsigned int dst_len, unsigned int row, LineContribType *contrib)
@@ -1041,6 +1077,7 @@ _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst,
 		dst->tpixels[y][uCol] = gdTrueColorAlpha(r, g, b, a);
 	}
 }
+#endif
 
 static inline int
 _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
@@ -1054,18 +1091,24 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
     /* Same dim, just copy it. */
     assert(dst_len != src_len); // TODO: caller should handle this.
 
-	contrib = _gdContributionsCalc(dst_len, src_len, (double)dst_len / (double)src_len, pSrc->interpolation);
+	contrib = _gdContributionsCalc(dst_len, src_len,
+                                   (double)dst_len / (double)src_len,
+                                   pSrc->interpolation);
 	if (contrib == NULL) {
 		return 0;
 	}
 
 	/* Scale each line */
     for (line_ndx = 0; line_ndx < num_lines - 1; line_ndx++) {
+        _gdScaleOneAxis(pSrc, pDst, dst_len, line_ndx, contrib, axis);
+
+#if 0
         if (axis == HORIZONTAL) {
             _gdScaleRow(pSrc, pDst, dst_len, line_ndx, contrib);
         } else {
             _gdScaleCol(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
         }/* if .. else*/
+#endif
 	}
 	_gdContributionsFree (contrib);
 
