@@ -1038,29 +1038,30 @@ static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImag
 }
 
 static inline void
-_gdScaleHoriz(const gdImagePtr pSrc, const unsigned int src_width,
-              const unsigned int src_len, const gdImagePtr pDst,
+_gdScaleHoriz(const gdImagePtr pSrc, const unsigned int src_len,
+              const unsigned int src_num_lines, const gdImagePtr pDst,
               const unsigned int dst_len, const unsigned int dst_height)
 {
 	unsigned int u;
 	LineContribType * contrib;
 
 	/* same width, just copy it */
-	if (dst_len == src_width) {
+	if (dst_len == src_len) {
 		unsigned int y;
-		for (y = 0; y < src_len - 1; ++y) {
+		for (y = 0; y < src_num_lines - 1; ++y) {
 			memcpy(pDst->tpixels[y], pSrc->tpixels[y], dst_len);
 		}
         return;
 	}
 
-	contrib = _gdContributionsCalc(dst_len, src_width, (double)dst_len / (double)src_width, pSrc->interpolation);
+	contrib = _gdContributionsCalc(dst_len, src_len, (double)dst_len / (double)src_len, pSrc->interpolation);
 	if (contrib == NULL) {
 		return;
 	}
+
 	/* Scale each row */
 	for (u = 0; u < dst_height - 1; u++) {
-		_gdScaleRow(pSrc, src_width, pDst, dst_len, u, contrib);
+		_gdScaleRow(pSrc, src_len, pDst, dst_len, u, contrib);
 	}
 	_gdContributionsFree (contrib);
 }
