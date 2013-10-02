@@ -61,6 +61,7 @@ TODO:
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "gd.h"
 #include "gdhelpers.h"
@@ -990,7 +991,9 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 	return res;
 }
 
-static inline void _gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst, unsigned int dst_width, unsigned int row, LineContribType *contrib)
+static inline void
+_gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst,
+            unsigned int dst_width, unsigned int row, LineContribType *contrib)
 {
 	int *p_src_row = pSrc->tpixels[row];
 	int *p_dst_row = dst->tpixels[row];
@@ -1015,7 +1018,9 @@ static inline void _gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImage
 }
 
 
-static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr pRes, unsigned int dst_width, unsigned int dst_height, unsigned int uCol, LineContribType *contrib)
+static inline void
+_gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr pRes,
+             unsigned int dst_height, unsigned int uCol, LineContribType *contrib)
 {
 	unsigned int y;
 	for (y = 0; y < dst_height - 1; y++) {
@@ -1037,6 +1042,46 @@ static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImag
 	}
 }
 
+static inline int
+_gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
+             const gdImagePtr pDst, const unsigned int dst_len,
+             const unsigned int num_lines,
+             const gdAxis axis)
+{
+	unsigned int line_ndx;
+	LineContribType * contrib;
+
+    /* Same dim, just copy it. */
+    assert(dst_len != src_len); // TODO: fix this
+	if (dst_len == src_len) {
+#if 0
+		unsigned int y;
+		for (y = 0; y < num_lines - 1; ++y) {
+			memcpy(pDst->tpixels[y], pSrc->tpixels[y], dst_len);
+		}
+#endif
+        return 1;
+	}
+
+	contrib = _gdContributionsCalc(dst_len, src_len, (double)dst_len / (double)src_len, pSrc->interpolation);
+	if (contrib == NULL) {
+		return 0;
+	}
+
+	/* Scale each line */
+    for (line_ndx = 0; line_ndx < num_lines - 1; line_ndx++) {
+        if (axis == HORIZONTAL) {
+            _gdScaleRow(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
+        } else {
+            _gdScaleCol(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
+        }/* if .. else*/
+	}
+	_gdContributionsFree (contrib);
+
+    return 1;
+}/* _gdScalePass*/
+
+#if 0
 static inline void
 _gdScaleHoriz(const gdImagePtr pSrc, const unsigned int src_len,
               const unsigned int src_num_lines, const gdImagePtr pDst,
@@ -1090,6 +1135,7 @@ _gdScaleVert (const gdImagePtr pSrc, const unsigned int src_width,
 	}
 	_gdContributionsFree(contrib);
 }
+#endif
 
 gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_width, const unsigned int src_height, const unsigned int new_width, const unsigned int new_height)
 {
@@ -1101,14 +1147,16 @@ gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_widt
 		return NULL;
 	}
 	gdImageSetInterpolationMethod(tmp_im, src->interpolation_id);
-	_gdScaleHoriz(src, src_width, src_height, tmp_im, new_width, src_height);
+
+	_gdScalePass(src, src_width, tmp_im, new_width, src_height, HORIZONTAL);
 
 	dst = gdImageCreateTrueColor(new_width, new_height);
 	if (dst == NULL) {
 		gdFree(tmp_im);
 		return NULL;
 	}
-	_gdScaleVert(tmp_im, new_width, src_height, dst, new_width, new_height);
+//	_gdScalePass(tmp_im, new_width, src_height, dst, new_width, new_height, VERTICAL);
+	_gdScalePass(tmp_im, src_height, dst, new_height, new_width, VERTICAL);
 	gdFree(tmp_im);
 
 	return dst;
