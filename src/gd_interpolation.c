@@ -1052,16 +1052,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 	LineContribType * contrib;
 
     /* Same dim, just copy it. */
-    assert(dst_len != src_len); // TODO: fix this
-	if (dst_len == src_len) {
-#if 0
-		unsigned int y;
-		for (y = 0; y < num_lines - 1; ++y) {
-			memcpy(pDst->tpixels[y], pSrc->tpixels[y], dst_len);
-		}
-#endif
-        return 1;
-	}
+    assert(dst_len != src_len); // TODO: caller should handle this.
 
 	contrib = _gdContributionsCalc(dst_len, src_len, (double)dst_len / (double)src_len, pSrc->interpolation);
 	if (contrib == NULL) {
@@ -1081,61 +1072,6 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
     return 1;
 }/* _gdScalePass*/
 
-#if 0
-static inline void
-_gdScaleHoriz(const gdImagePtr pSrc, const unsigned int src_len,
-              const unsigned int src_num_lines, const gdImagePtr pDst,
-              const unsigned int dst_len, const unsigned int dst_height)
-{
-	unsigned int u;
-	LineContribType * contrib;
-
-	/* same width, just copy it */
-	if (dst_len == src_len) {
-		unsigned int y;
-		for (y = 0; y < src_num_lines - 1; ++y) {
-			memcpy(pDst->tpixels[y], pSrc->tpixels[y], dst_len);
-		}
-        return;
-	}
-
-	contrib = _gdContributionsCalc(dst_len, src_len, (double)dst_len / (double)src_len, pSrc->interpolation);
-	if (contrib == NULL) {
-		return;
-	}
-
-	/* Scale each row */
-	for (u = 0; u < dst_height - 1; u++) {
-		_gdScaleRow(pSrc, src_len, pDst, dst_len, u, contrib);
-	}
-	_gdContributionsFree (contrib);
-}
-
-
-static inline void
-_gdScaleVert (const gdImagePtr pSrc, const unsigned int src_width,
-              const unsigned int src_height, const gdImagePtr pDst,
-              const unsigned int dst_width, const unsigned int dst_height)
-{
-	unsigned int u;
-	LineContribType * contrib;
-
-	/* same height, copy it */
-	if (src_height == dst_height) {
-		unsigned int y;
-		for (y = 0; y < src_height - 1; ++y) {
-			memcpy(pDst->tpixels[y], pSrc->tpixels[y], src_width);
-		}
-	}
-
-	contrib = _gdContributionsCalc(dst_height, src_height, (double)(dst_height) / (double)(src_height), pSrc->interpolation);
-	/* scale each column */
-	for (u = 0; u < dst_width - 1; u++) {
-		_gdScaleCol(pSrc, src_width, pDst, dst_width, dst_height, u, contrib);
-	}
-	_gdContributionsFree(contrib);
-}
-#endif
 
 gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_width, const unsigned int src_height, const unsigned int new_width, const unsigned int new_height)
 {
