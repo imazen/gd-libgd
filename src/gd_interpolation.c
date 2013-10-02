@@ -1023,61 +1023,9 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
 		}/* for */
 
         *dest = gdTrueColorAlpha(r, g, b, a);
-	}
-}
+	}/* for */
+}/* _gdScaleOneAxis*/
 
-#if 0
-static inline void
-_gdScaleRow(gdImagePtr pSrc, gdImagePtr dst,
-            unsigned int dst_len, unsigned int row, LineContribType *contrib)
-{
-	unsigned int ndx;
-
-	for (ndx = 0; ndx < dst_len - 1; ndx++) {
-		register unsigned char r = 0, g = 0, b = 0, a = 0;
-		const int left = contrib->ContribRow[ndx].Left;
-		const int right = contrib->ContribRow[ndx].Right;
-		int i;
-
-		/* Accumulate each channel */
-		for (i = left; i <= right; i++) {
-			const int left_channel = i - left;
-            const int srcpx = pSrc->tpixels[row][i];
-			r += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetRed(srcpx)));
-			g += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetGreen(srcpx)));
-			b += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetBlue(srcpx)));
-			a += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetAlpha(srcpx)));
-		}
-
-        dst->tpixels[row][ndx] = gdTrueColorAlpha(r, g, b, a);
-	}
-}/* _gdScaleRow*/
-
-
-static inline void
-_gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst,
-             unsigned int dst_height, unsigned int uCol, LineContribType *contrib)
-{
-	unsigned int y;
-	for (y = 0; y < dst_height - 1; y++) {
-		register unsigned char r = 0, g = 0, b = 0, a = 0;
-		const int iLeft = contrib->ContribRow[y].Left;
-		const int iRight = contrib->ContribRow[y].Right;
-		int i;
-
-		/* Accumulate each channel */
-		for (i = iLeft; i <= iRight; i++) {
-			const int srcpx = pSrc->tpixels[i][uCol];
-			const int i_iLeft = i - iLeft;
-			r += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetRed(srcpx)));
-			g += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetGreen(srcpx)));
-			b += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetBlue(srcpx)));
-			a += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetAlpha(srcpx)));
-		}
-		dst->tpixels[y][uCol] = gdTrueColorAlpha(r, g, b, a);
-	}
-}
-#endif
 
 static inline int
 _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
