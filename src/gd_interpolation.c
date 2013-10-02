@@ -992,34 +992,34 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 }
 
 static inline void
-_gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst,
-            unsigned int dst_width, unsigned int row, LineContribType *contrib)
+_gdScaleRow(gdImagePtr pSrc, gdImagePtr dst,
+            unsigned int dst_len, unsigned int row, LineContribType *contrib)
 {
-	int *p_src_row = pSrc->tpixels[row];
-	int *p_dst_row = dst->tpixels[row];
-	unsigned int x;
+	unsigned int ndx;
 
-	for (x = 0; x < dst_width - 1; x++) {
+	for (ndx = 0; ndx < dst_len - 1; ndx++) {
 		register unsigned char r = 0, g = 0, b = 0, a = 0;
-		const int left = contrib->ContribRow[x].Left;
-		const int right = contrib->ContribRow[x].Right;
+		const int left = contrib->ContribRow[ndx].Left;
+		const int right = contrib->ContribRow[ndx].Right;
 		int i;
 
 		/* Accumulate each channel */
 		for (i = left; i <= right; i++) {
 			const int left_channel = i - left;
-			r += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetRed(p_src_row[i])));
-			g += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetGreen(p_src_row[i])));
-			b += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetBlue(p_src_row[i])));
-			a += (unsigned char)(contrib->ContribRow[x].Weights[left_channel] * (double)(gdTrueColorGetAlpha(p_src_row[i])));
+            const int srcpx = pSrc->tpixels[row][i];
+			r += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetRed(srcpx)));
+			g += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetGreen(srcpx)));
+			b += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetBlue(srcpx)));
+			a += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetAlpha(srcpx)));
 		}
-		p_dst_row[x] = gdTrueColorAlpha(r, g, b, a);
+
+        dst->tpixels[row][ndx] = gdTrueColorAlpha(r, g, b, a);
 	}
-}
+}/* _gdScaleRow*/
 
 
 static inline void
-_gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr pRes,
+_gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr dst,
              unsigned int dst_height, unsigned int uCol, LineContribType *contrib)
 {
 	unsigned int y;
@@ -1031,14 +1031,14 @@ _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr pRes,
 
 		/* Accumulate each channel */
 		for (i = iLeft; i <= iRight; i++) {
-			const int pCurSrc = pSrc->tpixels[i][uCol];
+			const int srcpx = pSrc->tpixels[i][uCol];
 			const int i_iLeft = i - iLeft;
-			r += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetRed(pCurSrc)));
-			g += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetGreen(pCurSrc)));
-			b += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetBlue(pCurSrc)));
-			a += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetAlpha(pCurSrc)));
+			r += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetRed(srcpx)));
+			g += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetGreen(srcpx)));
+			b += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetBlue(srcpx)));
+			a += (unsigned char)(contrib->ContribRow[y].Weights[i_iLeft] * (double)(gdTrueColorGetAlpha(srcpx)));
 		}
-		pRes->tpixels[y][uCol] = gdTrueColorAlpha(r, g, b, a);
+		dst->tpixels[y][uCol] = gdTrueColorAlpha(r, g, b, a);
 	}
 }
 
@@ -1062,7 +1062,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 	/* Scale each line */
     for (line_ndx = 0; line_ndx < num_lines - 1; line_ndx++) {
         if (axis == HORIZONTAL) {
-            _gdScaleRow(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
+            _gdScaleRow(pSrc, pDst, dst_len, line_ndx, contrib);
         } else {
             _gdScaleCol(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
         }/* if .. else*/
