@@ -897,6 +897,13 @@ int getPixelInterpolated(gdImagePtr im, const double x, const double y, const in
 	return gdTrueColorAlpha(((int)new_r), ((int)new_g), ((int)new_b), ((int)new_a));
 }
 
+
+typedef enum {
+    HORIZONTAL,
+    VERTICAL,
+} gdAxis;
+
+
 static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, unsigned int windows_size)
 {
 	unsigned int u = 0;
@@ -1007,29 +1014,6 @@ static inline void _gdScaleRow(gdImagePtr pSrc,  unsigned int src_width, gdImage
 	}
 }
 
-static inline void _gdScaleHoriz(gdImagePtr pSrc, unsigned int src_width, unsigned int src_height, gdImagePtr pDst,  unsigned int dst_width, unsigned int dst_height)
-{
-	unsigned int u;
-	LineContribType * contrib;
-
-	/* same width, just copy it */
-	if (dst_width == src_width) {
-		unsigned int y;
-		for (y = 0; y < src_height - 1; ++y) {
-			memcpy(pDst->tpixels[y], pSrc->tpixels[y], src_width);
-		}
-	}
-
-	contrib = _gdContributionsCalc(dst_width, src_width, (double)dst_width / (double)src_width, pSrc->interpolation);
-	if (contrib == NULL) {
-		return;
-	}
-	/* Scale each row */
-	for (u = 0; u < dst_height - 1; u++) {
-		_gdScaleRow(pSrc, src_width, pDst, dst_width, u, contrib);
-	}
-	_gdContributionsFree (contrib);
-}
 
 static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImagePtr pRes, unsigned int dst_width, unsigned int dst_height, unsigned int uCol, LineContribType *contrib)
 {
@@ -1053,7 +1037,39 @@ static inline void _gdScaleCol (gdImagePtr pSrc,  unsigned int src_width, gdImag
 	}
 }
 
-static inline void _gdScaleVert (const gdImagePtr pSrc, const unsigned int src_width, const unsigned int src_height, const gdImagePtr pDst, const unsigned int dst_width, const unsigned int dst_height)
+static inline void
+_gdScaleHoriz(const gdImagePtr pSrc, const unsigned int src_width,
+              const unsigned int src_len, const gdImagePtr pDst,
+              const unsigned int dst_len, const unsigned int dst_height)
+{
+	unsigned int u;
+	LineContribType * contrib;
+
+	/* same width, just copy it */
+	if (dst_len == src_width) {
+		unsigned int y;
+		for (y = 0; y < src_len - 1; ++y) {
+			memcpy(pDst->tpixels[y], pSrc->tpixels[y], dst_len);
+		}
+        return;
+	}
+
+	contrib = _gdContributionsCalc(dst_len, src_width, (double)dst_len / (double)src_width, pSrc->interpolation);
+	if (contrib == NULL) {
+		return;
+	}
+	/* Scale each row */
+	for (u = 0; u < dst_height - 1; u++) {
+		_gdScaleRow(pSrc, src_width, pDst, dst_len, u, contrib);
+	}
+	_gdContributionsFree (contrib);
+}
+
+
+static inline void
+_gdScaleVert (const gdImagePtr pSrc, const unsigned int src_width,
+              const unsigned int src_height, const gdImagePtr pDst,
+              const unsigned int dst_width, const unsigned int dst_height)
 {
 	unsigned int u;
 	LineContribType * contrib;
@@ -1097,21 +1113,6 @@ gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_widt
 	return dst;
 }
 
-gdImagePtr Scale(const gdImagePtr src, const unsigned int src_width, const unsigned int src_height, const gdImagePtr dst, const unsigned int new_width, const unsigned int new_height)
-{
-	gdImagePtr tmp_im;
-
-	tmp_im = gdImageCreateTrueColor(new_width, src_height);
-	if (tmp_im == NULL) {
-		return NULL;
-	}
-	_gdScaleHoriz(src, src_width, src_height, tmp_im, new_width, src_height);
-
-	_gdScaleVert(tmp_im, new_width, src_height, dst, new_width, new_height);
-
-	gdFree(tmp_im);
-	return dst;
-}
 
 /*
 	BilinearFixed, BicubicFixed and nearest implementations are rewamped versions of the implementation in CBitmapEx
