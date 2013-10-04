@@ -9,6 +9,7 @@
 #include "gdtest.h"
 #include "test_config.h"
 
+
 void gdSilence(int priority, const char *format, va_list args)
 {
 	(void)priority;
@@ -205,10 +206,20 @@ int gdTestImageCompareToFile(const char* file, unsigned int line, const char* me
 	return res;
 }
 
+
+static int failureCount = 0;
+
+int gdNumFailures() {
+    return failureCount;
+}
+
 int _gdTestAssert(const char* file, unsigned int line, const char* message, int condition)
 {
 	if (condition) return 1;
 	_gdTestErrorMsg(file, line, "%s", message);
+
+    ++failureCount;
+
 	return 0;
 }
 
@@ -222,6 +233,9 @@ int _gdTestErrorMsg(const char* file, unsigned int line, const char* format, ...
 	va_end(args);
 	fprintf(stderr, "%s:%u: %s", file, line, output_buf);
 	fflush(stderr);
+
+    ++failureCount;
+
 	return 0;
 }
 /* }}} */

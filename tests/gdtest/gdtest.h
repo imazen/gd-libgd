@@ -41,4 +41,6 @@ int _gdTestErrorMsg(const char* file, unsigned int line, const char* string, ...
 
 void gdSilence(int priority, const char *format, va_list args);
 
+int gdNumFailures(void);
+
 #endif /* GD_TEST_H */
