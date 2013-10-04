@@ -1082,7 +1082,7 @@ gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_widt
 		gdFree(tmp_im);
 		return NULL;
 	}
-//	_gdScalePass(tmp_im, new_width, src_height, dst, new_width, new_height, VERTICAL);
+
 	_gdScalePass(tmp_im, src_height, dst, new_height, new_width, VERTICAL);
 	gdFree(tmp_im);
 
