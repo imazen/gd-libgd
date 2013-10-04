@@ -116,6 +116,8 @@ void gdTestImageDiff(gdImagePtr buf_a, gdImagePtr buf_b,
 }
 
 
+/* Return the largest difference between two corresponding pixels and
+ * channels. */
 unsigned int gdMaxPixelDiff(gdImagePtr a, gdImagePtr b)
 {
     int diff = 0;
