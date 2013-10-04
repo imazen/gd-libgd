@@ -1049,14 +1049,6 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 	/* Scale each line */
     for (line_ndx = 0; line_ndx < num_lines - 1; line_ndx++) {
         _gdScaleOneAxis(pSrc, pDst, dst_len, line_ndx, contrib, axis);
-
-#if 0
-        if (axis == HORIZONTAL) {
-            _gdScaleRow(pSrc, pDst, dst_len, line_ndx, contrib);
-        } else {
-            _gdScaleCol(pSrc, src_len, pDst, dst_len, line_ndx, contrib);
-        }/* if .. else*/
-#endif
 	}
 	_gdContributionsFree (contrib);
 
@@ -1064,8 +1056,12 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 }/* _gdScalePass*/
 
 
-gdImagePtr gdImageScaleTwoPass(const gdImagePtr src, const unsigned int src_width, const unsigned int src_height, const unsigned int new_width, const unsigned int new_height)
+static gdImagePtr
+gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
+                    const unsigned int new_height)
 {
+    const unsigned int src_width = src->sx;
+    const unsigned int src_height = src->sy;
 	gdImagePtr tmp_im;
 	gdImagePtr dst;
 
@@ -1644,7 +1640,7 @@ BGD_DECLARE(gdImagePtr) gdImageScale(const gdImagePtr src, const unsigned int ne
 			if (src->interpolation == NULL) {
 				return NULL;
 			}
-			im_scaled = gdImageScaleTwoPass(src, src->sx, src->sy, new_width, new_height);
+			im_scaled = gdImageScaleTwoPass(src, new_width, new_height);
 			break;
 	}
 	return im_scaled;
