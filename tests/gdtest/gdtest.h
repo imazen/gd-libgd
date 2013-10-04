@@ -24,6 +24,8 @@ int gdTestImageCompareToImage(const char* file, unsigned int line, const char* m
 int gdTestImageCompareToFile(const char* file, unsigned int line, const char* message,
                              const char *expected_file, gdImagePtr actual);
 
+unsigned int gdMaxPixelDiff(gdImagePtr a, gdImagePtr b);
+
 int _gdTestAssert(const char* file, unsigned int line, const char* message, int condition);
 
 int _gdTestErrorMsg(const char* file, unsigned int line, const char* string, ...);
