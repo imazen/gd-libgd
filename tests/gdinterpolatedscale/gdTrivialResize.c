@@ -3,13 +3,8 @@
 #include "gd.h"
 #include "gdtest.h"
 
-void png(gdImagePtr im, const char *filename)
-{    
-    FILE *fh;
-    fh = fopen(filename, "w");
-    gdImagePng(im, fh);
-    fclose(fh);
-}/* png*/
+/* Test gdImageScale() with bicubic interpolation on a simple
+ * all-white image. */
 
 gdImagePtr mkwhite(int x, int y)
 {
@@ -27,68 +22,69 @@ gdImagePtr mkwhite(int x, int y)
 }/* mkwhite*/
 
 
+/* Fill with almost-black. */
+void mkblack(gdImagePtr ptr) {
+    gdImageFilledRectangle(ptr, 0, 0, ptr->sx - 1, ptr->sy - 1,
+                           gdImageColorExactAlpha(ptr, 2, 2, 2, 0));
+}
 
 
+#define CLOSE_ENOUGH 10
+
+void scaletest(int x, int y, int nx, int ny)
+{
+    gdImagePtr im, imref, tmp, same;
+
+	imref = mkwhite(x, y);
+    im = mkwhite(x, y);
+    tmp = gdImageScale(im, nx, ny);
+    same = gdImageScale(tmp, x, y);
+
+    gdTestAssert(gdMaxPixelDiff(im, same) < CLOSE_ENOUGH);
+    mkblack(tmp);
+    gdTestAssert(gdMaxPixelDiff(imref, same) < CLOSE_ENOUGH);
+
+    gdImageDestroy(im);
+    gdImageDestroy(tmp);
+    gdImageDestroy(same);
+}/* scaletest*/
 
 void do_test(int x, int y, int nx, int ny)
 {
-	gdImagePtr im, tmp;
-    gdImagePtr samex, samey, same, same2;
+	gdImagePtr im, imref, tmp;
+    gdImagePtr same, same2;
 
 	im = mkwhite(x, y);
+    imref = mkwhite(x, y);
+
     same = gdImageScale(im, x, y);
-//gdImageFilledRectangle(same, 0, 0, x-1, y-1,
-//                           gdImageColorExactAlpha(im, 2, 2, 2, 0));
-//    png(same, "same.png");
-//    png(im, "im.png");
 
     /* Trivial resize should be a straight copy. */
     gdTestAssert(im != same);
-    gdTestAssert(gdTestImageCompareToImage(__FILE__, __LINE__,
-                                           "Trivial resize yields different image.",
-                                           im, same));
+    gdTestAssert(gdMaxPixelDiff(im, same) == 0);
+    gdTestAssert(gdMaxPixelDiff(imref, same) == 0);
+
+    /* Ensure that modifying im doesn't modify same (i.e. make sure
+     * they're not accidentally sharing the same pixel buffer.) */
+    mkblack(im);
+    gdTestAssert(gdMaxPixelDiff(imref, same) == 0);
+
     gdImageDestroy(same);
+    gdImageDestroy(im);
 
-    /* Scale only horizontally */
-    tmp = gdImageScale(im, x, ny);
-    samex = gdImageScale(tmp, x, y);
-printf("diff: %u\n", gdMaxPixelDiff(im, samex));
-png(samex, "samex.png");
-png(im, "im.png");
-    gdTestAssert(0 != gdMaxPixelDiff(im, samex));
+    /* These currently fail due to the "black border" bug. */
 
-
-
+    /* Scale horizontally, vertically and both. */
+    scaletest(x, y, nx, y);
+    scaletest(x, y, x, ny);
+    scaletest(x, y, nx, ny);
 }
 
 int main(int argc, char **argv)
 {
 
     do_test(300, 300, 600, 600);
-//    do_test(3200, 2133, 640, 427);
+    do_test(3200, 2133, 640, 427);
 
     return gdNumFailures();
-#if 0
-	gdImagePtr im;
-	char path[2048];
-	const char *file_exp = "gdimageline/gdImageAALine_thickness_exp.png";
-
-	im = gdImageCreateTrueColor(100, 100);
-	gdImageFilledRectangle(im, 0, 0, 99, 99,
-			       gdImageColorExactAlpha(im, 255, 255, 255, 0));
-
-	gdImageSetThickness(im, 5);
-	gdImageSetAntiAliased(im, gdImageColorExactAlpha(im, 0, 0, 0, 0));
-	gdImageLine(im, 0,0, 99, 99, gdAntiAliased);
-
-	sprintf(path, "%s/%s", GDTEST_TOP_DIR, file_exp);
-
-	if (!gdAssertImageEqualsToFile(path, im)) {
-		printf("comparing rotated image to %s failed.\n", path);
-		gdImageDestroy(im);
-		return 1;
-	}
-
-	gdImageDestroy(im);
-#endif
 }
