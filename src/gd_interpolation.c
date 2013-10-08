@@ -1092,6 +1092,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
     /* Otherwise, we need to scale vertically. */
 	dst = gdImageCreateTrueColor(new_width, new_height);
 	if (dst != NULL) {
+        gdImageSetInterpolationMethod(dst, src->interpolation_id);
         _gdScalePass(tmp_im, src_height, dst, new_height, new_width, VERTICAL);
     }/* if */
 
@@ -1100,7 +1101,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
     }/* if */
 
 	return dst;
-}
+}/* gdImageScaleTwoPass*/
 
 
 /*
