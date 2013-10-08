@@ -40,7 +40,12 @@ void scaletest(int x, int y, int nx, int ny)
     tmp = gdImageScale(im, nx, ny);
     same = gdImageScale(tmp, x, y);
 
+    /* Test the result to insure that it's close enough to the
+     * original. */
     gdTestAssert(gdMaxPixelDiff(im, same) < CLOSE_ENOUGH);
+
+    /* Modify the original and test for a change again.  (I.e. test
+     * for accidentally shared memory.) */
     mkblack(tmp);
     gdTestAssert(gdMaxPixelDiff(imref, same) < CLOSE_ENOUGH);
 
@@ -64,8 +69,8 @@ void do_test(int x, int y, int nx, int ny)
     gdTestAssert(gdMaxPixelDiff(im, same) == 0);
     gdTestAssert(gdMaxPixelDiff(imref, same) == 0);
 
-    /* Ensure that modifying im doesn't modify same (i.e. make sure
-     * they're not accidentally sharing the same pixel buffer.) */
+    /* Ensure that modifying im doesn't modify same (i.e. see if we
+     * can catch them accidentally sharing the same pixel buffer.) */
     mkblack(im);
     gdTestAssert(gdMaxPixelDiff(imref, same) == 0);
 
