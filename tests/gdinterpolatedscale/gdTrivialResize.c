@@ -23,10 +23,11 @@ gdImagePtr mkwhite(int x, int y)
 
 
 /* Fill with almost-black. */
-void mkblack(gdImagePtr ptr) {
+void mkblack(gdImagePtr ptr)
+{
     gdImageFilledRectangle(ptr, 0, 0, ptr->sx - 1, ptr->sy - 1,
                            gdImageColorExactAlpha(ptr, 2, 2, 2, 0));
-}
+}/* mkblack*/
 
 
 #define CLOSE_ENOUGH 15
@@ -76,8 +77,6 @@ void do_test(int x, int y, int nx, int ny)
 
     gdImageDestroy(same);
     gdImageDestroy(im);
-
-    /* These currently fail due to the "black border" bug. */
 
     /* Scale horizontally, vertically and both. */
     scaletest(x, y, nx, y);
