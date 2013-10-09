@@ -29,7 +29,7 @@ void mkblack(gdImagePtr ptr) {
 }
 
 
-#define CLOSE_ENOUGH 10
+#define CLOSE_ENOUGH 15
 
 void scaletest(int x, int y, int nx, int ny)
 {
