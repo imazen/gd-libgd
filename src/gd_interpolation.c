@@ -994,7 +994,7 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 	return res;
 }
 
-#if 0
+
 static inline unsigned char
 to_uchar(double clr) {
     unsigned short result;
@@ -1006,7 +1006,6 @@ to_uchar(double clr) {
 
     return clr;
 }/* to_uchar*/
-#endif
 
 static inline void
 _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
@@ -1043,12 +1042,8 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
                 * (double)(gdTrueColorGetAlpha(srcpx));
 		}/* for */
 
-        cr = CLAMP((unsigned char)round(r), 0, 255);
-        cg = CLAMP((unsigned char)round(g), 0, 255);
-        cb = CLAMP((unsigned char)round(b), 0, 255);
-        ca = CLAMP((unsigned char)round(a), 0, 127);
-
-        *dest = gdTrueColorAlpha(cr, cg, cb, ca);
+        *dest = gdTrueColorAlpha(to_uchar(r), to_uchar(g), to_uchar(b),
+                                 to_uchar(a));
 	}/* for */
 }/* _gdScaleOneAxis*/
 
