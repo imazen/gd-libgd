@@ -63,7 +63,7 @@ TODO:
 #include <math.h>
 #include <assert.h>
 
-#define NDEBUG 1 /* TODO: disable/enable assertions in configure. */
+//#define NDEBUG 1 /* TODO: disable/enable assertions in configure. */
 #include <assert.h>
 
 #include "gd.h"
@@ -1003,7 +1003,7 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
 	unsigned int ndx;
 
 	for (ndx = 0; ndx < dst_len; ndx++) {
-		register unsigned char r = 0, g = 0, b = 0, a = 0;
+		register unsigned int r = 0, g = 0, b = 0, a = 0;
 		const int left = contrib->ContribRow[ndx].Left;
 		const int right = contrib->ContribRow[ndx].Right;
         int *dest = (axis == HORIZONTAL) ? 
@@ -1019,13 +1019,23 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
                 pSrc->tpixels[row][i] : 
                 pSrc->tpixels[i][row];
 
-			r += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetRed(srcpx)));
-			g += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetGreen(srcpx)));
-			b += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetBlue(srcpx)));
-			a += (unsigned char)(contrib->ContribRow[ndx].Weights[left_channel] * (double)(gdTrueColorGetAlpha(srcpx)));
+			r += (unsigned int)round(contrib->ContribRow[ndx].Weights[left_channel]
+                                      * (double)(gdTrueColorGetRed(srcpx)));
+			g += (unsigned int)round(contrib->ContribRow[ndx].Weights[left_channel]
+                                      * (double)(gdTrueColorGetGreen(srcpx)));
+			b += (unsigned int)round(contrib->ContribRow[ndx].Weights[left_channel]
+                                      * (double)(gdTrueColorGetBlue(srcpx)));
+			a += (unsigned int)round(contrib->ContribRow[ndx].Weights[left_channel]
+                                      * (double)(gdTrueColorGetAlpha(srcpx)));
 		}/* for */
 
-        *dest = gdTrueColorAlpha(r, g, b, a);
+        r = CLAMP(r, 0, 255);
+        g = CLAMP(g, 0, 255);
+        b = CLAMP(b, 0, 255);
+        a = CLAMP(a, 0, 127);
+
+        *dest = gdTrueColorAlpha((unsigned char)r, (unsigned char)g,
+                                 (unsigned char)b, (unsigned char)a);
 	}/* for */
 }/* _gdScaleOneAxis*/
 
