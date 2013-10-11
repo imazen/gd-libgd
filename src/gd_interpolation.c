@@ -1016,7 +1016,6 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
 
 	for (ndx = 0; ndx < dst_len; ndx++) {
         double r = 0, g = 0, b = 0, a = 0;
-        unsigned char cr, cg, cb, ca;
 		const int left = contrib->ContribRow[ndx].Left;
 		const int right = contrib->ContribRow[ndx].Right;
         int *dest = (axis == HORIZONTAL) ? 
