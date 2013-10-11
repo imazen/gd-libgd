@@ -63,7 +63,7 @@ TODO:
 #include <math.h>
 #include <assert.h>
 
-//#define NDEBUG 1 /* TODO: disable/enable assertions in configure. */
+#define NDEBUG 1 /* TODO: disable/enable assertions in configure. */
 #include <assert.h>
 
 #include "gd.h"
@@ -995,15 +995,22 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 }
 
 
-/* Convert a double to an unsigned char, rounding to the
- * nearest integer and clamping the result between 0 and 255.  Note: the */
+/* Convert a double to an unsigned char, rounding to the nearest
+ * integer and clamping the result between 0 and 255.  The absolute
+ * value of clr must be less than the maximum value of an unsigned
+ * short.
+ */
 static inline unsigned char
 uchar_clamp(double clr) {
     unsigned short result;
 
-//    assert(fabs(clr) <= 32766.0);
+    assert(fabs(clr) <= SHRT_MAX);
 
-    result = (unsigned short)(clr + 0.5); // XXX assumes casts round to zero
+    /* This assumes that the cast truncates 1) toward zero 2) converts
+     * negative numbers into their 2s-complement equivalent in the
+     * resulting unsigned short.  This may be implementation-defined
+     * behaviour. */
+    result = (unsigned short)(clr + 0.5);
     if (result > 255) {
         result = (clr < 0) ? 0 : 255;
     }/* if */
