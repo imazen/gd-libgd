@@ -995,17 +995,21 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 }
 
 
+/* Convert a double to an unsigned char, rounding to the
+ * nearest integer and clamping the result between 0 and 255.  Note: the */
 static inline unsigned char
-to_uchar(double clr) {
+uchar_clamp(double clr) {
     unsigned short result;
 
+//    assert(fabs(clr) <= 32766.0);
+
     result = (unsigned short)(clr + 0.5); // XXX assumes casts round to zero
-    if (clr > 255) {
-        clr = 255;
+    if (result > 255) {
+        result = (clr < 0) ? 0 : 255;
     }/* if */
 
-    return clr;
-}/* to_uchar*/
+    return result;
+}/* uchar_clamp*/
 
 static inline void
 _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
@@ -1041,8 +1045,8 @@ _gdScaleOneAxis(gdImagePtr pSrc, gdImagePtr dst,
                 * (double)(gdTrueColorGetAlpha(srcpx));
 		}/* for */
 
-        *dest = gdTrueColorAlpha(to_uchar(r), to_uchar(g), to_uchar(b),
-                                 to_uchar(a));
+        *dest = gdTrueColorAlpha(uchar_clamp(r), uchar_clamp(g),uchar_clamp(b),
+                                 uchar_clamp(a));
 	}/* for */
 }/* _gdScaleOneAxis*/
 
