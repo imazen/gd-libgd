@@ -998,19 +998,22 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 /* Convert a double to an unsigned char, rounding to the nearest
  * integer and clamping the result between 0 and 255.  The absolute
  * value of clr must be less than the maximum value of an unsigned
- * short.
- */
+ * short. */
 static inline unsigned char
 uchar_clamp(double clr) {
     unsigned short result;
 
     assert(fabs(clr) <= SHRT_MAX);
 
-    /* This assumes that the cast truncates 1) toward zero 2) converts
-     * negative numbers into their 2s-complement equivalent in the
-     * resulting unsigned short.  This may be implementation-defined
-     * behaviour. */
-    result = (unsigned short)(clr + 0.5);
+    /* Casting a negative float to an unsigned short is undefined.
+     * However, casting a float to a signed truncates toward zero and
+     * casting a negative signed value to an unsigned of the same size
+     * results in a bit-identical value (assuming twos-complement
+     * arithmetic).  This is what we want: all legal negative values
+     * for clr will be greater than 255. */
+
+    /* Convert and clamp. */
+    result = (unsigned short)(short)(clr + 0.5);
     if (result > 255) {
         result = (clr < 0) ? 0 : 255;
     }/* if */
