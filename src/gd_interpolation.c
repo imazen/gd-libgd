@@ -85,6 +85,9 @@ TODO:
 
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
+//static inline int imax(int a, int b) {return MAX(a,b);}
+//static inline int imin(int a, int b) {return MAX(a,b);}
+
 /* only used here, let do a generic fixed point integers later if required by other
    part of GD */
 typedef long gdFixed;
@@ -914,17 +917,17 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 {
 	double width_d;
 	double scale_f_d = 1.0;
-	const double filter_width_d = DEFAULT_BOX_RADIUS;
+//	const double filter_width_d = DEFAULT_BOX_RADIUS;
 	int windows_size;
 	unsigned int u;
 	LineContribType *res;
 	const double scale_d = (double)dst_len / (double)src_len;
 
 	if (scale_d < 1.0) {
-		width_d = filter_width_d / scale_d;
+		width_d = DEFAULT_BOX_RADIUS / scale_d;
 		scale_f_d = scale_d;
 	}  else {
-		width_d= filter_width_d;
+		width_d = DEFAULT_BOX_RADIUS;
 	}
 
 	windows_size = 2 * (int)ceil(width_d) + 1;
@@ -1044,8 +1047,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 	unsigned int line_ndx;
 	LineContribType * contrib;
 
-    /* Same dim, just copy it. */
-    assert(dst_len != src_len); // TODO: caller should handle this.
+    assert(dst_len != src_len);
 
 	contrib = _gdContributionsCalc(dst_len, src_len, pSrc->interpolation);
 	if (contrib == NULL) {
