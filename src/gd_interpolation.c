@@ -917,16 +917,15 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 {
 	double width_d;
 	double scale_f_d = 1.0;
-//	const double filter_width_d = DEFAULT_BOX_RADIUS;
 	int windows_size;
 	unsigned int u;
 	LineContribType *res;
 	const double scale_d = (double)dst_len / (double)src_len;
 
-	if (scale_d < 1.0) {
+	if (scale_d < 1.0) {	/* i.e., shrinking */
 		width_d = DEFAULT_BOX_RADIUS / scale_d;
 		scale_f_d = scale_d;
-	}  else {
+	} else {
 		width_d = DEFAULT_BOX_RADIUS;
 	}
 
@@ -942,8 +941,8 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 		int iSrc;
 
 		/* Cut edge points to fit in filter window in case of spill-off */
-		if (iRight - iLeft + 1 > windows_size)	{
-			if (iLeft < ((int)src_len - 1 / 2))	 {
+		if (iRight - iLeft + 1 > windows_size) {
+			if (iLeft < ((int)src_len - 1 / 2)) {
 				iLeft++;
 			} else {
 				iRight--;
@@ -954,7 +953,9 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 		res->ContribRow[u].Right = iRight;
 
 		for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
-			dTotalWeight += (res->ContribRow[u].Weights[iSrc-iLeft] =  scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc)));
+			dTotalWeight +=
+				res->ContribRow[u].Weights[iSrc-iLeft] = 
+					scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc));
 		}
 
 		if (dTotalWeight < 0.0) {
