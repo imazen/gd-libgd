@@ -908,7 +908,9 @@ static inline void _gdContributionsFree(LineContribType * p)
 	gdFree(p);
 }
 
-static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsigned int src_size, double scale_d,  const interpolation_method pFilter)
+static inline LineContribType *
+_gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
+					 const interpolation_method pFilter)
 {
 	double width_d;
 	double scale_f_d = 1.0;
@@ -916,6 +918,7 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 	int windows_size;
 	unsigned int u;
 	LineContribType *res;
+	const double scale_d = (double)dst_len / (double)src_len;
 
 	if (scale_d < 1.0) {
 		width_d = filter_width_d / scale_d;
@@ -925,19 +928,19 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 	}
 
 	windows_size = 2 * (int)ceil(width_d) + 1;
-	res = _gdContributionsAlloc(line_size, windows_size);
+	res = _gdContributionsAlloc(dst_len, windows_size);
 
-	for (u = 0; u < line_size; u++) {
+	for (u = 0; u < dst_len; u++) {
 		const double dCenter = (double)u / scale_d;
 		/* get the significant edge points affecting the pixel */
 		register int iLeft = MAX(0, (int)floor (dCenter - width_d));
-		int iRight = MIN((int)ceil(dCenter + width_d), (int)src_size - 1);
+		int iRight = MIN((int)ceil(dCenter + width_d), (int)src_len - 1);
 		double dTotalWeight = 0.0;
 		int iSrc;
 
 		/* Cut edge points to fit in filter window in case of spill-off */
-		if (iRight - iLeft + 1 > windows_size)  {
-			if (iLeft < ((int)src_size - 1 / 2))  {
+		if (iRight - iLeft + 1 > windows_size)	{
+			if (iLeft < ((int)src_len - 1 / 2))	 {
 				iLeft++;
 			} else {
 				iRight--;
@@ -1044,9 +1047,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
     /* Same dim, just copy it. */
     assert(dst_len != src_len); // TODO: caller should handle this.
 
-	contrib = _gdContributionsCalc(dst_len, src_len,
-                                   (double)dst_len / (double)src_len,
-                                   pSrc->interpolation);
+	contrib = _gdContributionsCalc(dst_len, src_len, pSrc->interpolation);
 	if (contrib == NULL) {
 		return 0;
 	}
