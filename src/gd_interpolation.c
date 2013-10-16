@@ -86,7 +86,7 @@ TODO:
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 //static inline int imax(int a, int b) {return MAX(a,b);}
-//static inline int imin(int a, int b) {return MAX(a,b);}
+//static inline int imin(int a, int b) {return MIN(a,b);}
 
 /* only used here, let do a generic fixed point integers later if required by other
    part of GD */
