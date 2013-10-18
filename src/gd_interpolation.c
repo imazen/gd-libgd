@@ -931,7 +931,7 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 
 	windows_size = 2 * (int)ceil(width_d) + 1;
 	res = _gdContributionsAlloc(dst_len, windows_size);
-
+printf("width=%f\n", width_d);
 	for (u = 0; u < dst_len; u++) {
 		const double dCenter = (double)u / scale_d;
 		/* get the significant edge points affecting the pixel */
@@ -942,6 +942,7 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 printf("%4d %6.03f %2d %2d -- ", u, dCenter, iLeft, iRight);
 		/* Cut edge points to fit in filter window in case of spill-off */
 		if (iRight - iLeft + 1 > windows_size) {
+printf("(big!)");
 			if (iLeft < ((int)src_len - 1 / 2)) {
 				iLeft++;
 			} else {
