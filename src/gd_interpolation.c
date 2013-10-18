@@ -939,7 +939,7 @@ _gdContributionsCalc(const unsigned int dst_len, const unsigned int src_len,
 		int iRight = MIN((int)ceil(dCenter + width_d), (int)src_len - 1);
 		double dTotalWeight = 0.0;
 		int iSrc;
-printf("%d %f %d %d\n", u, dCenter, iLeft, iRight);
+printf("%4d %6.03f %2d %2d -- ", u, dCenter, iLeft, iRight);
 		/* Cut edge points to fit in filter window in case of spill-off */
 		if (iRight - iLeft + 1 > windows_size) {
 			if (iLeft < ((int)src_len - 1 / 2)) {
@@ -956,9 +956,9 @@ printf("%d %f %d %d\n", u, dCenter, iLeft, iRight);
 			dTotalWeight +=
 				res->ContribRow[u].Weights[iSrc-iLeft] = 
 					scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc));
-//printf("%d*%f ", iSrc, res->ContribRow[u].Weights[iSrc-iLeft]);
+printf("%d*%f ", iSrc, res->ContribRow[u].Weights[iSrc-iLeft]);
 		}
-//printf(" -> %d\n", u);        
+printf(" -> %d\n", u);        
 
 		if (dTotalWeight < 0.0) {
 			_gdContributionsFree(res);
