@@ -205,5 +205,5 @@ Makefile.in
 /tests/gdimageline/gdImageAALine_thickness
 /tests/gdimageline/gdimageline_bug5
 /tests/gdinterpolatedscale/gdTrivialResize
-/tests/gdinterpolatedscale/gdModesAndPallettes
+/tests/gdinterpolatedscale/gdModesAndPalettes
 
