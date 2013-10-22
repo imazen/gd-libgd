@@ -18,11 +18,14 @@ int main() {
     for(method = GD_BELL; method <= GD_TRIANGLE; method++) {   /* GD_WEIGHTED4 is unsupported. */
         gdImagePtr im[2];
 
+        // printf("Method = %d\n", method);
         im[0] = gdImageCreateTrueColor(X, Y);
         im[1] = gdImageCreatePalette(X, Y);
 
         for (i = 0; i < 2; i++) {
             gdImagePtr result;
+
+            // printf("    %s\n", i == 0 ? "truecolor" : "palette");
 
             gdImageFilledRectangle(im[i], 0, 0, X-1, Y-1,
                                    gdImageColorExactAlpha(im[i], 255, 255, 255, 0));
