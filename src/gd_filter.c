@@ -3,6 +3,7 @@
 #endif
 
 #include "gd.h"
+#include "gd_intern.h"
 
 #ifdef _WIN32
 # include <windows.h>
@@ -606,3 +607,136 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 	return gdImageConvolution(im, filter, weight+8, 0);
 }
+
+
+/* ======================== Experimental code ======================== */
+
+typedef double (*SeparableTransformFn)(int x, double xarg, int y, double yarg);
+
+
+static double gaussianBlur(int x, double xarg, int y, double yarg)
+{
+
+
+}
+
+static inline int 
+reflect(int max, int x)
+{
+    assert(x > -max && x < 2*max);
+
+    if(x < 0) return -x;
+    if(x >= max) return max - (x - max) - 1;
+    return x;
+}/* reflect*/
+
+
+static inline int
+filterCoeffs(int xradius, int yradius, double xarg, double yarg,
+             double **xcoeffs, double **ycoeffs,
+             SeparableTransformFn fn)
+{
+    double sum = 0;
+    int x, y;
+
+    assert(xcoeffs && ycoeffs);
+
+    *xcoeffs = gdMalloc((xradius*2 + 1) * sizeof(double));
+    if (!*xcoeffs) return 0;
+
+    *ycoeffs = gdMalloc((yradius*2 + 1) * sizeof(double));
+    if (!*ycoeffs) {
+        gdFree(*xcoeffs);
+        return 0;
+    }/* if */
+
+    /* Compute the sum and coefficients. */
+    for (x = -xradius; x < xradius + 1; x++) {
+        for (y = -yradius; y < yradius + 1; y++) {
+            double coeff = fn(x, xarg, y, yarg);
+
+            sum += coeff;
+            if (x == 0) {
+                *xcoeffs[y + yradius] = coeff;
+            }/* if */
+
+            if (y == 0) {
+                *ycoeffs[x + xradius] = coeff;
+            }/* if */
+        }/* for */
+    }/* for */
+    
+    /* Normalize the coefficients. */
+    for (x = 0; x < 2*xradius + 1; x++) {
+        *xcoeffs[x] /= sum;
+    }/* for */
+
+    for (y = 0; y < 2*yradius + 1; y++) {
+        *ycoeffs[y] /= sum;
+    }/* for */
+
+    return 1;
+}
+
+
+static inline gdImagePtr
+applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int num_coeffs, 
+            gdAxis axis)
+{
+
+    
+
+    return NULL;
+}
+
+
+/* TODO: maybe export this? */
+gdImagePtr
+gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
+                       double xarg, double yarg, SeparableTransformFn fn)
+{
+    gdImagePtr tmp = NULL, result = NULL;
+    double *xcoeffs = NULL, *ycoeffs = NULL;
+
+	/* Convert to truecolor if it isn't; this code requires it. */
+	if (!src->trueColor) {
+		gdImagePaletteToTrueColor(src);
+	}/* if */
+
+    /* Compute the coefficients. */
+    if (!filterCoeffs(xradius, yradius, xarg, yarg, &xcoeffs, &ycoeffs,fn)){
+        return NULL;
+    }/* if */
+
+    /* Apply the filter horizontally. */
+    tmp = gdImageCreateTrueColor(src->sx, src->sy);
+    if (!tmp) return NULL;
+    applyCoeffs(src, tmp, ycoeffs, yradius, HORIZONTAL);
+
+    /* Apply the filter vertically. */
+    result = gdImageCreateTrueColor(src->sx, src->sy);
+    if (result) {
+        applyCoeffs(tmp, result, ycoeffs, yradius, VERTICAL);
+    }/* if */
+
+    gdDestroy(tmp);
+
+    return result;
+}/* gdImageSeparableFilter*/
+
+
+
+BGD_DECLARE(gdImagePtr)
+gdBicubic2(gdImagePtr src, int xradius, int yradius, double xsigma, 
+           double ysigma) {
+
+    /* TODO: compute xsigma from xradius if zero (i.e. not given). */
+
+    /* ysigma and yradius are computed from their x counterparts if
+     * not give. */
+    ysigma  = (ysigma <= 0.0) ? xsigma  : ysigma;
+    yradius = (yradius <= 0)  ? xradius : yradius;
+    
+    return gdImageSeparableFilter(src, xradius, yradius, xsigma, ysigma,
+                                  gaussianBlur);
+}/* gdBicubic2*/
