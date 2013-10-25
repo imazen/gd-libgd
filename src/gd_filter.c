@@ -620,17 +620,6 @@ static double gaussianBlur(int x, double xarg, int y, double yarg)
 
 }
 
-static inline int 
-reflect(int max, int x)
-{
-    assert(x > -max && x < 2*max);
-
-    if(x < 0) return -x;
-    if(x >= max) return max - (x - max) - 1;
-    return x;
-}/* reflect*/
-
-
 static inline int
 filterCoeffs(int xradius, int yradius, double xarg, double yarg,
              double **xcoeffs, double **ycoeffs,
@@ -651,7 +640,7 @@ filterCoeffs(int xradius, int yradius, double xarg, double yarg,
     }/* if */
 
     /* Compute the sum and coefficients. */
-    for (x = -xradius; x < xradius + 1; x++) {
+    for (x = -xradius; x <= xradius; x++) {
         for (y = -yradius; y < yradius + 1; y++) {
             double coeff = fn(x, xarg, y, yarg);
 
@@ -679,14 +668,68 @@ filterCoeffs(int xradius, int yradius, double xarg, double yarg,
 }
 
 
-static inline gdImagePtr
-applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int num_coeffs, 
+static inline int
+reflect(int max, int x)
+{
+    assert(x > -max && x < 2*max);
+
+    if(x < 0) return -x;
+    if(x >= max) return max - (x - max) - 1;
+    return x;
+}/* reflect*/
+
+
+
+static inline void
+applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
+                double *coeffs, int radius, gdAxis axis)
+{
+    int ndx;
+
+    for (ndx = 0; ndx < linelen; ndx++) {
+        double r = 0, g = 0, b = 0, a = 0;
+        int cndx;
+        int *dest = (axis == HORIZONTAL) ?
+            &dst->tpixels[line][ndx] :
+            &dst->tpixels[ndx][line];
+
+        for (cndx = -radius; cndx <= radius; cndx++) {
+            const double coeff = coeffs[c+radius];
+            const int rndx = reflect(linelen, ndx + cndx);
+
+            const int srcpx = (axis == HORIZONTAL) ?
+                src->tpixels[line][rndx] :
+                src->tpixels[rndx][line];
+                
+            r += coeff * (double)gdTrueColorGetRed(srcpx);
+            g += coeff * (double)gdTrueColorGetGreen(srcpx);
+            b += coeff * (double)gdTrueColorGetBlue(srcpx);
+            a += coeff * (double)gdTrueColorGetAlpha(srcpx);
+        }/* for */
+
+		*dest = gdTrueColorAlpha(uchar_clamp(r), uchar_clamp(g),uchar_clamp(b),
+								 uchar_clamp(a));
+    }/* for */
+}/* applyCoeffsLine*/
+
+
+static inline void
+applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius, 
             gdAxis axis)
 {
+    int line, numlines, linelen;
 
-    
+    if (axis == HORIZONTAL) {
+        numlines = src->sy;
+        linelen = src->sx;
+    } else {
+        numlines = src->sx;
+        linelen = src->sy;
+    }/* if .. else*/
 
-    return NULL;
+    for (line = 0; line < numlines; line++) {
+        applyCoeffsLine(src, dst, line, linelen, coeffs, radius, axis);
+    }/* for */
 }
 
 
@@ -711,7 +754,7 @@ gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
-    applyCoeffs(src, tmp, ycoeffs, yradius, HORIZONTAL);
+    applyCoeffs(src, tmp, xcoeffs, xradius, HORIZONTAL);
 
     /* Apply the filter vertically. */
     result = gdImageCreateTrueColor(src->sx, src->sy);
