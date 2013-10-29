@@ -614,7 +614,7 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 typedef double (*SeparableTransformFn)(int x, double xarg, int y, double yarg);
 
 
-static double gaussianBlur(int x, double xarg, int y, double yarg)
+static double gaussianBlur(int x, double xsigma, int y, double ysigma)
 {
 
 
