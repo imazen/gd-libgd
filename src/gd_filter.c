@@ -770,8 +770,8 @@ gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
 
 
 BGD_DECLARE(gdImagePtr)
-gdBicubic2(gdImagePtr src, int xradius, int yradius, double xsigma, 
-           double ysigma) {
+gdImageGaussianBlur2(gdImagePtr src, int xradius, int yradius, double xsigma,
+                     double ysigma) {
 
     /* TODO: compute xsigma from xradius if zero (i.e. not given). */
 
