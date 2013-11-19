@@ -611,18 +611,18 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
-typedef double (*SeparableTransformFn)(int x, double xarg, int y, double yarg);
+typedef double (*SeparableTransformFn)(int x, int y, double arg);
 
 
-static double gaussianBlur(int x, double xsigma, int y, double ysigma)
+static double gaussianBlur(int x, double xsigma)
 {
 
 
 }
 
 static inline int
-filterCoeffs(int xradius, int yradius, double xarg, double yarg,
-             double **xcoeffs, double **ycoeffs,
+filterCoeffs(int radius, int yradius, double arg,
+             double **xcoeffs,
              SeparableTransformFn fn)
 {
     double sum = 0;
@@ -630,7 +630,7 @@ filterCoeffs(int xradius, int yradius, double xarg, double yarg,
 
     assert(xcoeffs && ycoeffs);
 
-    *xcoeffs = gdMalloc((xradius*2 + 1) * sizeof(double));
+    *xcoeffs = gdMalloc((radius*2 + 1) * sizeof(double));
     if (!*xcoeffs) return 0;
 
     *ycoeffs = gdMalloc((yradius*2 + 1) * sizeof(double));
@@ -640,9 +640,9 @@ filterCoeffs(int xradius, int yradius, double xarg, double yarg,
     }/* if */
 
     /* Compute the sum and coefficients. */
-    for (x = -xradius; x <= xradius; x++) {
+    for (x = -radius; x <= radius; x++) {
         for (y = -yradius; y < yradius + 1; y++) {
-            double coeff = fn(x, xarg, y, yarg);
+            double coeff = fn(x, y, arg);
 
             sum += coeff;
             if (x == 0) {
@@ -650,13 +650,13 @@ filterCoeffs(int xradius, int yradius, double xarg, double yarg,
             }/* if */
 
             if (y == 0) {
-                *ycoeffs[x + xradius] = coeff;
+                *ycoeffs[x + radius] = coeff;
             }/* if */
         }/* for */
     }/* for */
     
     /* Normalize the coefficients. */
-    for (x = 0; x < 2*xradius + 1; x++) {
+    for (x = 0; x < 2*radius + 1; x++) {
         *xcoeffs[x] /= sum;
     }/* for */
 
@@ -734,9 +734,9 @@ applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius,
 
 
 /* TODO: maybe export this? */
-gdImagePtr
-gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
-                       double xarg, double yarg, SeparableTransformFn fn)
+static gdImagePtr
+gdImageSeparableFilter(gdImagePtr src, int radius, double arg,
+                       SeparableTransformFn fn)
 {
     gdImagePtr tmp = NULL, result = NULL;
     double *xcoeffs = NULL, *ycoeffs = NULL;
@@ -747,19 +747,19 @@ gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
 	}/* if */
 
     /* Compute the coefficients. */
-    if (!filterCoeffs(xradius, yradius, xarg, yarg, &xcoeffs, &ycoeffs,fn)){
+    if (!filterCoeffs(radius, arg, &xcoeffs, fn)) {
         return NULL;
     }/* if */
 
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
-    applyCoeffs(src, tmp, xcoeffs, xradius, HORIZONTAL);
+    applyCoeffs(src, tmp, xcoeffs, radius, HORIZONTAL);
 
     /* Apply the filter vertically. */
     result = gdImageCreateTrueColor(src->sx, src->sy);
     if (result) {
-        applyCoeffs(tmp, result, ycoeffs, yradius, VERTICAL);
+        applyCoeffs(tmp, result, xcoeffs, radius, VERTICAL);
     }/* if */
 
     gdDestroy(tmp);
@@ -770,16 +770,9 @@ gdImageSeparableFilter(gdImagePtr src, int xradius, int yradius,
 
 
 BGD_DECLARE(gdImagePtr)
-gdImageGaussianBlur2(gdImagePtr src, int xradius, int yradius, double xsigma,
-                     double ysigma) {
+gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
 
-    /* TODO: compute xsigma from xradius if zero (i.e. not given). */
+    /* TODO: compute sigma from radius if zero (i.e. not given). */
 
-    /* ysigma and yradius are computed from their x counterparts if
-     * not give. */
-    ysigma  = (ysigma <= 0.0) ? xsigma  : ysigma;
-    yradius = (yradius <= 0)  ? xradius : yradius;
-    
-    return gdImageSeparableFilter(src, xradius, yradius, xsigma, ysigma,
-                                  gaussianBlur);
+    return gdImageSeparableFilter(src, radius, sigma, gaussianBlur);
 }/* gdBicubic2*/
