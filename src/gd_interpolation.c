@@ -943,7 +943,10 @@ static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsi
 		res->ContribRow[u].Right = iRight;
 
 		for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
-			dTotalWeight += (res->ContribRow[u].Weights[iSrc-iLeft] =  scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc)));
+			dTotalWeight += (
+                res->ContribRow[u].Weights[iSrc-iLeft] =
+                    scale_f_d * (*pFilter)(scale_f_d * (dCenter-(double)iSrc))
+                );
 		}
 
 		if (dTotalWeight < 0.0) {
@@ -1032,7 +1035,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 
 static gdImagePtr
 gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
-                    const unsigned int new_height)
+                    const unsigned int new_height, int allow_samesize)
 {
     const unsigned int src_width = src->sx;
     const unsigned int src_height = src->sy;
@@ -1040,7 +1043,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
 	gdImagePtr dst = NULL;
 
     /* First, handle the trivial case. */
-    if (src_width == new_width && src_height == new_height) {
+    if (!allow_samesize && src_width == new_width && src_height == new_height){
         return gdImageClone(src);
     }/* if */
 
@@ -1050,7 +1053,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
 	}/* if */
 
     /* Scale horizontally unless sizes are the same. */
-    if (src_width == new_width) {
+    if (!allow_samesize && src_width == new_width) {
         tmp_im = src;
     } else {
         tmp_im = gdImageCreateTrueColor(new_width, src_height);
@@ -1063,8 +1066,8 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
     }/* if .. else*/
 
     /* If vertical sizes match, we're done. */
-    if (src_height == new_height) {
-        assert(tmp_im != src);
+    if (src_height == new_height && !allow_samesize) {
+        assert(tmp_im != src && !allow_samesize);
         return tmp_im;
     }/* if */
 
@@ -1637,7 +1640,7 @@ BGD_DECLARE(gdImagePtr) gdImageScale(const gdImagePtr src, const unsigned int ne
 			if (src->interpolation == NULL) {
 				return NULL;
 			}
-			im_scaled = gdImageScaleTwoPass(src, new_width, new_height);
+			im_scaled = gdImageScaleTwoPass(src, new_width, new_height, GD_FALSE);
 			break;
 	}
 

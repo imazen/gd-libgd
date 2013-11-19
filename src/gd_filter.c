@@ -611,6 +611,7 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
+#if 0
 typedef double (*SeparableTransformFn)(int x, int y, double arg);
 
 
@@ -776,3 +777,4 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
 
     return gdImageSeparableFilter(src, radius, sigma, gaussianBlur);
 }/* gdBicubic2*/
+#endif
