@@ -924,7 +924,7 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
 		width_d = filter_width_d / scale_d;
 		scale_f_d = scale_d;
 	}  else {
-		width_d= filter_width_d;
+		width_d = filter_width_d;
 	}
 
 	windows_size = 2 * (int)ceil(width_d) + 1;
@@ -951,7 +951,10 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
 		res->ContribRow[u].Right = iRight;
 
 		for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
-			dTotalWeight += (res->ContribRow[u].Weights[iSrc-iLeft] =  scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc)));
+			dTotalWeight += (
+                res->ContribRow[u].Weights[iSrc-iLeft] =
+                    scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc))
+                );
 		}
 
 		if (dTotalWeight < 0.0) {
