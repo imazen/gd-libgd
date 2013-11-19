@@ -908,7 +908,10 @@ static inline void _gdContributionsFree(LineContribType * p)
 	gdFree(p);
 }
 
-static inline LineContribType *_gdContributionsCalc(unsigned int line_size, unsigned int src_size, double scale_d,  const interpolation_method pFilter)
+static inline LineContribType *
+_gdContributionsCalc(unsigned int line_size, unsigned int src_size,
+                     double scale_d,  const interpolation_method pFilter,
+                     int blur)
 {
 	double width_d;
 	double scale_f_d = 1.0;
@@ -1037,7 +1040,8 @@ static inline int
 _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
              const gdImagePtr pDst, const unsigned int dst_len,
              const unsigned int num_lines,
-             const gdAxis axis)
+             const gdAxis axis,
+             int blur)
 {
 	unsigned int line_ndx;
 	LineContribType * contrib;
@@ -1047,7 +1051,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 
 	contrib = _gdContributionsCalc(dst_len, src_len,
                                    (double)dst_len / (double)src_len,
-                                   pSrc->interpolation);
+                                   pSrc->interpolation, blur);
 	if (contrib == NULL) {
 		return 0;
 	}
@@ -1064,7 +1068,7 @@ _gdScalePass(const gdImagePtr pSrc, const unsigned int src_len,
 
 static gdImagePtr
 gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
-                    const unsigned int new_height)
+                    const unsigned int new_height, int blur)
 {
     const unsigned int src_width = src->sx;
     const unsigned int src_height = src->sy;
@@ -1072,7 +1076,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
 	gdImagePtr dst = NULL;
 
     /* First, handle the trivial case. */
-    if (src_width == new_width && src_height == new_height) {
+    if (!blur > 0 && src_width == new_width && src_height == new_height) {
         return gdImageClone(src);
     }/* if */
 
@@ -1082,7 +1086,7 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
 	}/* if */
 
     /* Scale horizontally unless sizes are the same. */
-    if (src_width == new_width) {
+    if (!blur > 0 && src_width == new_width) {
         tmp_im = src;
     } else {
         tmp_im = gdImageCreateTrueColor(new_width, src_height);
@@ -1091,7 +1095,8 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
         }
         gdImageSetInterpolationMethod(tmp_im, src->interpolation_id);
 
-        _gdScalePass(src, src_width, tmp_im, new_width, src_height, HORIZONTAL);
+        _gdScalePass(src, src_width, tmp_im, new_width, src_height, HORIZONTAL,
+                     blur);
     }/* if .. else*/
 
     /* If vertical sizes match, we're done. */
@@ -1104,7 +1109,8 @@ gdImageScaleTwoPass(const gdImagePtr src, const unsigned int new_width,
 	dst = gdImageCreateTrueColor(new_width, new_height);
 	if (dst != NULL) {
         gdImageSetInterpolationMethod(dst, src->interpolation_id);
-        _gdScalePass(tmp_im, src_height, dst, new_height, new_width, VERTICAL);
+        _gdScalePass(tmp_im, src_height, dst, new_height, new_width, VERTICAL,
+                     blur);
     }/* if */
 
     if (src != tmp_im) {
@@ -1669,7 +1675,7 @@ BGD_DECLARE(gdImagePtr) gdImageScale(const gdImagePtr src, const unsigned int ne
 			if (src->interpolation == NULL) {
 				return NULL;
 			}
-			im_scaled = gdImageScaleTwoPass(src, new_width, new_height);
+			im_scaled = gdImageScaleTwoPass(src, new_width, new_height, 0);
 			break;
 	}
 
