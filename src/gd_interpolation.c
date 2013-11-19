@@ -314,6 +314,14 @@ static double filter_bicubic(const double t)
 	return 0;
 }
 
+/* XXX */
+static double filter_trivial(const double t)
+{
+    if (fabs(t) < 0.00001) return 1.0d;
+    return 0.0d;
+}
+
+
 /**
  * Generalized cubic kernel (for a=-1 it is the same as BicubicKernel):
   \verbatim
@@ -908,21 +916,69 @@ static inline void _gdContributionsFree(LineContribType * p)
 	gdFree(p);
 }
 
+static double *
+_gdGaussianCoeffs(int radius, int *countPtr) {
+    const double sigma = (2.0/3.0)*radius;
+    const double s = 2.0 * sigma * sigma;
+    double *result;
+    double sum = 0;
+    int x, y, n, count;
+
+    count = 2*radius + 1;
+
+    result = gdMalloc(sizeof(double) * count);
+    if (!result) {
+        return NULL;
+    }/* if */
+
+    for (y = -radius; y <= radius; y++) {
+        for (x = -radius; x <= radius; x++) {
+            double r = sqrt(x*x + y*y);
+            double coeff = exp(-(r*r)/s) / (M_PI * s);
+
+            sum += coeff;
+            
+            if (y == 0) {
+                result[x + radius] = coeff;
+            }/* if */
+        }/* for */
+    }/* for */
+    
+    
+    for (n = 0; n < count; n++) {
+        result[n] /= sum;
+    }/* for */
+
+    *countPtr = count;
+    return result;
+}/* _gdGaussianCoeffs*/
+
+
 static inline LineContribType *
 _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
-                     double scale_d,  const interpolation_method pFilter,
+                     double scale_d, interpolation_method pFilter,
                      int blur)
 {
 	double width_d;
 	double scale_f_d = 1.0;
 	const double filter_width_d = DEFAULT_BOX_RADIUS;
-	int windows_size;
+	int windows_size, blur_coeff_count = 0;
 	unsigned int u;
 	LineContribType *res;
-
+    double *blur_coeffs = NULL;
+    
 	if (scale_d < 1.0) {
 		width_d = filter_width_d / scale_d;
-		scale_f_d = scale_d;
+        scale_f_d = scale_d;
+    } else if (blur && scale_d == 1.0) {
+        pFilter = filter_trivial;
+
+        if (blur < 0) {
+            width_d = 1.0;  // should yield unchanged image.
+        } else {
+            width_d = 2*blur;
+        }/* if .. else*/
+
 	}  else {
 		width_d = filter_width_d;
 	}
