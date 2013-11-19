@@ -957,7 +957,7 @@ _gdGaussianCoeffs(int radius, int *countPtr) {
 static inline LineContribType *
 _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
                      double scale_d, interpolation_method pFilter,
-                     int blur)
+                     int radius)
 {
 	double width_d;
 	double scale_f_d = 1.0;
@@ -970,13 +970,20 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
 	if (scale_d < 1.0) {
 		width_d = filter_width_d / scale_d;
         scale_f_d = scale_d;
-    } else if (blur && scale_d == 1.0) {
+    } else if (radius && scale_d == 1.0) {
         pFilter = filter_trivial;
 
-        if (blur < 0) {
+        if (radius < 0) {
             width_d = 1.0;  // should yield unchanged image.
         } else {
-            width_d = 2*blur;
+            assert(radius > 0); // duh
+
+            blur_coeffs = _gdGaussianCoeffs(radius, &blur_coeff_count);
+            if (!blur_coeffs) {
+                return NULL;
+            }/* if */
+
+            width_d = (double)radius;
         }/* if .. else*/
 
 	}  else {
@@ -984,6 +991,7 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
 	}
 
 	windows_size = 2 * (int)ceil(width_d) + 1;
+    assert(blur <= 0 || windows_size == blur_coeff_count);
 	res = _gdContributionsAlloc(line_size, windows_size);
 
 	for (u = 0; u < line_size; u++) {
@@ -1000,8 +1008,8 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
 				iLeft++;
 			} else {
 				iRight--;
-			}
-		}
+			}/* if .. else*/
+		}/* if */
 
 		res->ContribRow[u].Left = iLeft;
 		res->ContribRow[u].Right = iRight;
@@ -1011,19 +1019,29 @@ _gdContributionsCalc(unsigned int line_size, unsigned int src_size,
                 res->ContribRow[u].Weights[iSrc-iLeft] =
                     scale_f_d * (*pFilter)(scale_f_d * (dCenter - (double)iSrc))
                 );
-		}
+		}/* for */
 
 		if (dTotalWeight < 0.0) {
 			_gdContributionsFree(res);
 			return NULL;
-		}
+		}/* if */
+
+//  p[x] += b[x]; px[x] += 
+
+        if (radius > 0) {
+            for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
+//                res->ContribRow[u].Weights[iSrc-iLeft] +=
+                
+            }
+
+        }/* if */
 
 		if (dTotalWeight > 0.0) {
 			for (iSrc = iLeft; iSrc <= iRight; iSrc++) {
 				res->ContribRow[u].Weights[iSrc-iLeft] /= dTotalWeight;
-			}
-		}
-	}
+			}/* for */
+		}/* if */
+	}/* for */
 	return res;
 }
 
