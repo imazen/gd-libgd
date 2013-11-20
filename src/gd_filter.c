@@ -3,6 +3,7 @@
 #endif
 
 #include "gd.h"
+#include "gd_intern.h"
 
 #ifdef _WIN32
 # include <windows.h>
@@ -564,9 +565,11 @@ BGD_DECLARE(int) gdImageEdgeDetectQuick(gdImagePtr src)
 
 BGD_DECLARE(int) gdImageGaussianBlur(gdImagePtr im)
 {
-	float filter[3][3] =	{{1.0,2.0,1.0},
-				{2.0,4.0,2.0},
-				{1.0,2.0,1.0}};
+	float filter[3][3] = {
+        {1.0, 2.0, 1.0},
+        {2.0, 4.0, 2.0},
+        {1.0, 2.0, 1.0}
+    };
 
 	return gdImageConvolution(im, filter, 16, 0);
 }
@@ -604,3 +607,148 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 	return gdImageConvolution(im, filter, weight+8, 0);
 }
+
+
+/* ======================== Experimental code ======================== */
+
+
+#if 0
+
+static double *
+gaussian_coeffs(int radius, int *countPtr) {
+    const double sigma = (2.0/3.0)*radius;
+    const double s = 2.0 * sigma * sigma;
+    double *result;
+    double sum = 0;
+    int x, y, n, count;
+
+    count = 2*radius + 1;
+
+    result = gdMalloc(sizeof(double) * count);
+    if (!result) {
+        return NULL;
+    }/* if */
+
+    for (y = -radius; y <= radius; y++) {
+        for (x = -radius; x <= radius; x++) {
+            double r = sqrt(x*x + y*y);
+            double coeff = exp(-(r*r)/s) / (M_PI * s);
+
+            sum += coeff;
+            
+            if (y == 0) {
+                result[x + radius] = coeff;
+            }/* if */
+        }/* for */
+    }/* for */
+    
+    
+    for (n = 0; n < count; n++) {
+        result[n] /= sum;
+    }/* for */
+
+    *countPtr = count;
+    return result;
+}/* gaussian_coeffs*/
+
+
+
+static inline int
+reflect(int max, int x)
+{
+    assert(x > -max && x < 2*max);
+
+    if(x < 0) return -x;
+    if(x >= max) return max - (x - max) - 1;
+    return x;
+}/* reflect*/
+
+
+
+static inline void
+applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
+                double *coeffs, int radius, gdAxis axis)
+{
+    int ndx;
+
+    for (ndx = 0; ndx < linelen; ndx++) {
+        double r = 0, g = 0, b = 0, a = 0;
+        int cndx;
+        int *dest = (axis == HORIZONTAL) ?
+            &dst->tpixels[line][ndx] :
+            &dst->tpixels[ndx][line];
+
+        for (cndx = -radius; cndx <= radius; cndx++) {
+            const double coeff = coeffs[c+radius];
+            const int rndx = reflect(linelen, ndx + cndx);
+
+            const int srcpx = (axis == HORIZONTAL) ?
+                src->tpixels[line][rndx] :
+                src->tpixels[rndx][line];
+                
+            r += coeff * (double)gdTrueColorGetRed(srcpx);
+            g += coeff * (double)gdTrueColorGetGreen(srcpx);
+            b += coeff * (double)gdTrueColorGetBlue(srcpx);
+            a += coeff * (double)gdTrueColorGetAlpha(srcpx);
+        }/* for */
+
+		*dest = gdTrueColorAlpha(uchar_clamp(r), uchar_clamp(g),uchar_clamp(b),
+								 uchar_clamp(a));
+    }/* for */
+}/* applyCoeffsLine*/
+
+
+static inline void
+applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius, 
+            gdAxis axis)
+{
+    int line, numlines, linelen;
+
+    if (axis == HORIZONTAL) {
+        numlines = src->sy;
+        linelen = src->sx;
+    } else {
+        numlines = src->sx;
+        linelen = src->sy;
+    }/* if .. else*/
+
+    for (line = 0; line < numlines; line++) {
+        applyCoeffsLine(src, dst, line, linelen, coeffs, radius, axis);
+    }/* for */
+}/* applyCoeffs*/
+
+
+BGD_DECLARE(gdImagePtr)
+gdImageGaussianBlur2(gdImagePtr src, int radius) {
+    gdImagePtr tmp = NULL, result = NULL;
+    double *coeffs;
+    int numcoffs = 0;
+
+	/* Convert to truecolor if it isn't; this code requires it. */
+	if (!src->trueColor) {
+		gdImagePaletteToTrueColor(src);
+	}/* if */
+
+    /* Compute the coefficients. */
+    coeffs = gaussian_coeffs(radius, &numcoffs);
+    if (!coeffs) {
+        return NULL;
+    }/* if */
+
+    /* Apply the filter horizontally. */
+    tmp = gdImageCreateTrueColor(src->sx, src->sy);
+    if (!tmp) return NULL;
+    applyCoeffs(src, tmp, coeffs, numcoffs, HORIZONTAL);
+
+    /* Apply the filter vertically. */
+    result = gdImageCreateTrueColor(src->sx, src->sy);
+    if (result) {
+        applyCoeffs(tmp, result, coeffs, numcoffs, VERTICAL);
+    }/* if */
+
+    gdDestroy(tmp);
+
+    return result;
+}/* gdImageSeparableFilter*/
+
+#endif

@@ -68,6 +68,7 @@ TODO:
 
 #include "gd.h"
 #include "gdhelpers.h"
+#include "gd_intern.h"
 
 #ifdef _MSC_VER
 # pragma optimize("t", on)
@@ -871,13 +872,6 @@ int getPixelInterpolated(gdImagePtr im, const double x, const double y, const in
 
 	return gdTrueColorAlpha(((int)new_r), ((int)new_g), ((int)new_b), ((int)new_a));
 }
-
-
-typedef enum {
-    HORIZONTAL,
-    VERTICAL,
-} gdAxis;
-
 
 static inline LineContribType * _gdContributionsAlloc(unsigned int line_length, unsigned int windows_size)
 {

@@ -975,6 +975,7 @@ BGD_DECLARE(int) gdImageContrast(gdImagePtr src, double contrast);
 BGD_DECLARE(int) gdImageBrightness(gdImagePtr src, int brightness);
 BGD_DECLARE(int) gdImageGrayScale(gdImagePtr src);
 BGD_DECLARE(int) gdImageNegate(gdImagePtr src);
+BGD_DECLARE(gdImagePtr) gdImageGaussianBlur2(gdImagePtr src, int radius);
 
 /* Macros to access information about images. */
 

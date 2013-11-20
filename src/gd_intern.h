@@ -14,6 +14,13 @@
 #endif
 #define MAX3(a,b,c) ((a)<(b)?(MAX(b,c)):(MAX(a,c)))
 
+
+typedef enum {
+    HORIZONTAL,
+    VERTICAL,
+} gdAxis;
+
+
 #ifndef MAXPATHLEN
 # ifdef PATH_MAX
 #  define MAXPATHLEN PATH_MAX
