@@ -611,62 +611,46 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
-#if 0
-typedef double (*SeparableTransformFn)(int x, int y, double arg);
 
 
-static double gaussianBlur(int x, double xsigma)
-{
 
-
-}
-
-static inline int
-filterCoeffs(int radius, int yradius, double arg,
-             double **xcoeffs,
-             SeparableTransformFn fn)
-{
+static double *
+gaussian_coeffs(int radius, int *countPtr) {
+    const double sigma = (2.0/3.0)*radius;
+    const double s = 2.0 * sigma * sigma;
+    double *result;
     double sum = 0;
-    int x, y;
+    int x, y, n, count;
 
-    assert(xcoeffs && ycoeffs);
+    count = 2*radius + 1;
 
-    *xcoeffs = gdMalloc((radius*2 + 1) * sizeof(double));
-    if (!*xcoeffs) return 0;
-
-    *ycoeffs = gdMalloc((yradius*2 + 1) * sizeof(double));
-    if (!*ycoeffs) {
-        gdFree(*xcoeffs);
-        return 0;
+    result = gdMalloc(sizeof(double) * count);
+    if (!result) {
+        return NULL;
     }/* if */
 
-    /* Compute the sum and coefficients. */
-    for (x = -radius; x <= radius; x++) {
-        for (y = -yradius; y < yradius + 1; y++) {
-            double coeff = fn(x, y, arg);
+    for (y = -radius; y <= radius; y++) {
+        for (x = -radius; x <= radius; x++) {
+            double r = sqrt(x*x + y*y);
+            double coeff = exp(-(r*r)/s) / (M_PI * s);
 
             sum += coeff;
-            if (x == 0) {
-                *xcoeffs[y + yradius] = coeff;
-            }/* if */
-
+            
             if (y == 0) {
-                *ycoeffs[x + radius] = coeff;
+                result[x + radius] = coeff;
             }/* if */
         }/* for */
     }/* for */
     
-    /* Normalize the coefficients. */
-    for (x = 0; x < 2*radius + 1; x++) {
-        *xcoeffs[x] /= sum;
+    
+    for (n = 0; n < count; n++) {
+        result[n] /= sum;
     }/* for */
 
-    for (y = 0; y < 2*yradius + 1; y++) {
-        *ycoeffs[y] /= sum;
-    }/* for */
+    *countPtr = count;
+    return result;
+}/* gaussian_coeffs*/
 
-    return 1;
-}
 
 
 static inline int
@@ -731,16 +715,14 @@ applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius,
     for (line = 0; line < numlines; line++) {
         applyCoeffsLine(src, dst, line, linelen, coeffs, radius, axis);
     }/* for */
-}
+}/* applyCoeffs*/
 
 
-/* TODO: maybe export this? */
-static gdImagePtr
-gdImageSeparableFilter(gdImagePtr src, int radius, double arg,
-                       SeparableTransformFn fn)
-{
+BGD_DECLARE(gdImagePtr)
+gdImageGaussianBlur2(gdImagePtr src, int radius) {
     gdImagePtr tmp = NULL, result = NULL;
-    double *xcoeffs = NULL, *ycoeffs = NULL;
+    double *coeffs;
+    int numcoffs = 0;
 
 	/* Convert to truecolor if it isn't; this code requires it. */
 	if (!src->trueColor) {
@@ -748,19 +730,20 @@ gdImageSeparableFilter(gdImagePtr src, int radius, double arg,
 	}/* if */
 
     /* Compute the coefficients. */
-    if (!filterCoeffs(radius, arg, &xcoeffs, fn)) {
+    coeffs = gaussian_coeffs(radius, &numcoffs);
+    if (!coeffs) {
         return NULL;
     }/* if */
 
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
-    applyCoeffs(src, tmp, xcoeffs, radius, HORIZONTAL);
+    applyCoeffs(src, tmp, coeffs, numcoffs, HORIZONTAL);
 
     /* Apply the filter vertically. */
     result = gdImageCreateTrueColor(src->sx, src->sy);
     if (result) {
-        applyCoeffs(tmp, result, xcoeffs, radius, VERTICAL);
+        applyCoeffs(tmp, result, coeffs, numcoffs, VERTICAL);
     }/* if */
 
     gdDestroy(tmp);
@@ -770,11 +753,4 @@ gdImageSeparableFilter(gdImagePtr src, int radius, double arg,
 
 
 
-BGD_DECLARE(gdImagePtr)
-gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
-
-    /* TODO: compute sigma from radius if zero (i.e. not given). */
-
-    return gdImageSeparableFilter(src, radius, sigma, gaussianBlur);
-}/* gdBicubic2*/
 #endif
