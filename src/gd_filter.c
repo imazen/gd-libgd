@@ -670,7 +670,7 @@ reflect(int max, int x)
 
 static inline void
 applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
-                double *coeffs, unsigned radius, gdAxis axis)
+                double *coeffs, int radius, gdAxis axis)
 {
     int ndx;
 
@@ -702,7 +702,7 @@ applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
 
 
 static inline void
-applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, unsigned radius, 
+applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius, 
             gdAxis axis)
 {
     int line, numlines, linelen;
