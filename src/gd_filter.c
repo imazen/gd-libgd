@@ -623,7 +623,7 @@ gaussian_coeffs(int radius, double sigmaArg, int *countPtr) {
     double sum = 0;
     int x, y, n, count;
 
-
+    printf("sigma = %lf\n", sigma);
 
     count = 2*radius + 1;
 
@@ -632,19 +632,15 @@ gaussian_coeffs(int radius, double sigmaArg, int *countPtr) {
         return NULL;
     }/* if */
 
-    for (y = -radius; y <= radius; y++) {
-        for (x = -radius; x <= radius; x++) {
-            double r = sqrt(x*x + y*y);
-            double coeff = exp(-(r*r)/s) / (M_PI * s);
+    for (x = -radius; x <= radius; x++) {
+        double coeff = exp(-(x*x)/s);
 
-            sum += coeff;
-            
-            if (y == 0) {
-                result[x + radius] = coeff;
-            }/* if */
-        }/* for */
+        sum += coeff;
+        result[x + radius] = coeff;
     }/* for */
+
     
+    printf("coeff sum = %lf\n", sum);
     
     for (n = 0; n < count; n++) {
         result[n] /= sum;
