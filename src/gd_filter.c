@@ -3,6 +3,7 @@
 #endif
 
 #include "gd.h"
+#include "gdhelpers.h"
 #include "gd_intern.h"
 
 #ifdef _WIN32
@@ -12,6 +13,8 @@
 #endif
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
+#include <assert.h>
 
 typedef int (BGD_STDCALL *FuncPtr)(gdImagePtr, int, int);
 
@@ -612,7 +615,7 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 /* ======================== Experimental code ======================== */
 
 
-#if 0
+#if 1
 
 static double *
 gaussian_coeffs(int radius, int *countPtr) {
@@ -679,7 +682,7 @@ applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
             &dst->tpixels[ndx][line];
 
         for (cndx = -radius; cndx <= radius; cndx++) {
-            const double coeff = coeffs[c+radius];
+            const double coeff = coeffs[cndx + radius];
             const int rndx = reflect(linelen, ndx + cndx);
 
             const int srcpx = (axis == HORIZONTAL) ?
@@ -692,8 +695,8 @@ applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
             a += coeff * (double)gdTrueColorGetAlpha(srcpx);
         }/* for */
 
-		*dest = gdTrueColorAlpha(uchar_clamp(r), uchar_clamp(g),uchar_clamp(b),
-								 uchar_clamp(a));
+		*dest = gdTrueColorAlpha(uchar_clamp(r, 0xFF), uchar_clamp(g, 0xFF),
+                                 uchar_clamp(b, 0xFF), uchar_clamp(a, 0x7F));
     }/* for */
 }/* applyCoeffsLine*/
 
@@ -746,7 +749,7 @@ gdImageGaussianBlur2(gdImagePtr src, int radius) {
         applyCoeffs(tmp, result, coeffs, numcoffs, VERTICAL);
     }/* if */
 
-    gdDestroy(tmp);
+    gdImageDestroy(tmp);
 
     return result;
 }/* gdImageSeparableFilter*/
