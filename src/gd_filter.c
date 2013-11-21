@@ -615,10 +615,8 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 /* ======================== Experimental code ======================== */
 
 
-#if 1
-
 static double *
-gaussian_coeffs(int radius, int *countPtr) {
+gaussian_coeffs(unsigned radius, int *countPtr) {
     const double sigma = (2.0/3.0)*radius;
     const double s = 2.0 * sigma * sigma;
     double *result;
@@ -670,7 +668,7 @@ reflect(int max, int x)
 
 static inline void
 applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
-                double *coeffs, int radius, gdAxis axis)
+                double *coeffs, unsigned radius, gdAxis axis)
 {
     int ndx;
 
@@ -702,7 +700,7 @@ applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
 
 
 static inline void
-applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius, 
+applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, unsigned radius, 
             gdAxis axis)
 {
     int line, numlines, linelen;
@@ -722,7 +720,7 @@ applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius,
 
 
 BGD_DECLARE(gdImagePtr)
-gdImageGaussianBlur2(gdImagePtr src, int radius) {
+gdImageGaussianBlur2(gdImagePtr src, unsigned radius) {
     gdImagePtr tmp = NULL, result = NULL;
     double *coeffs;
     int numcoffs = 0;
@@ -754,4 +752,3 @@ gdImageGaussianBlur2(gdImagePtr src, int radius) {
     return result;
 }/* gdImageSeparableFilter*/
 
-#endif

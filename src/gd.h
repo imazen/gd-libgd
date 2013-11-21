@@ -965,6 +965,7 @@ BGD_DECLARE(int) gdImageScatterColor(gdImagePtr im, int sub, int plus, int color
 BGD_DECLARE(int) gdImageScatterEx(gdImagePtr im, gdScatterPtr s);
 BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight);
 BGD_DECLARE(int) gdImageMeanRemoval(gdImagePtr im);
+BGD_DECLARE(gdImagePtr) gdImageGaussianBlur2(gdImagePtr src, unsigned radius);
 BGD_DECLARE(int) gdImageEmboss(gdImagePtr im);
 BGD_DECLARE(int) gdImageGaussianBlur(gdImagePtr im);
 BGD_DECLARE(int) gdImageEdgeDetectQuick(gdImagePtr src);
@@ -975,7 +976,6 @@ BGD_DECLARE(int) gdImageContrast(gdImagePtr src, double contrast);
 BGD_DECLARE(int) gdImageBrightness(gdImagePtr src, int brightness);
 BGD_DECLARE(int) gdImageGrayScale(gdImagePtr src);
 BGD_DECLARE(int) gdImageNegate(gdImagePtr src);
-BGD_DECLARE(gdImagePtr) gdImageGaussianBlur2(gdImagePtr src, int radius);
 
 /* Macros to access information about images. */
 
