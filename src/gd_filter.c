@@ -616,12 +616,14 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 
 static double *
-gaussian_coeffs(unsigned radius, int *countPtr) {
-    const double sigma = (2.0/3.0)*radius;
+gaussian_coeffs(int radius, double sigmaArg, int *countPtr) {
+    const double sigma = (sigmaArg <= 0.0) ? (2.0/3.0)*radius : sigmaArg;
     const double s = 2.0 * sigma * sigma;
     double *result;
     double sum = 0;
     int x, y, n, count;
+
+
 
     count = 2*radius + 1;
 
@@ -720,10 +722,14 @@ applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, unsigned radius,
 
 
 BGD_DECLARE(gdImagePtr)
-gdImageGaussianBlur2(gdImagePtr src, unsigned radius) {
+gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
     gdImagePtr tmp = NULL, result = NULL;
     double *coeffs;
-    int numcoffs = 0;
+    int numcoeffs = 0;
+
+    if (radius < 1) {
+        return NULL;
+    }/* if */
 
 	/* Convert to truecolor if it isn't; this code requires it. */
 	if (!src->trueColor) {
@@ -731,24 +737,33 @@ gdImageGaussianBlur2(gdImagePtr src, unsigned radius) {
 	}/* if */
 
     /* Compute the coefficients. */
-    coeffs = gaussian_coeffs(radius, &numcoffs);
+    coeffs = gaussian_coeffs(radius, sigma, &numcoeffs);
     if (!coeffs) {
         return NULL;
     }/* if */
 
+    {
+        int n;
+        printf("coeffs = {");
+        for (n = 0; n < numcoeffs; n++) {
+            printf("%lf,", coeffs[n]);
+        }
+        printf("}\n");
+    }
+
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
-    applyCoeffs(src, tmp, coeffs, numcoffs, HORIZONTAL);
+    applyCoeffs(src, tmp, coeffs, numcoeffs, HORIZONTAL);
 
     /* Apply the filter vertically. */
     result = gdImageCreateTrueColor(src->sx, src->sy);
     if (result) {
-        applyCoeffs(tmp, result, coeffs, numcoffs, VERTICAL);
+        applyCoeffs(tmp, result, coeffs, numcoeffs, VERTICAL);
     }/* if */
 
     gdImageDestroy(tmp);
 
     return result;
-}/* gdImageSeparableFilter*/
+}/* gdImageGaussianBlur2*/
 
