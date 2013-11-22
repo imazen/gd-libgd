@@ -614,9 +614,10 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
-
+/* Return an array of coefficients for 'radius' and 'sigma' (sigma >=
+ * 0 means compute it).  Result length is 2*radius+1. */
 static double *
-gaussian_coeffs(int radius, double sigmaArg, int *countPtr) {
+gaussian_coeffs(int radius, double sigmaArg) {
     const double sigma = (sigmaArg <= 0.0) ? (2.0/3.0)*radius : sigmaArg;
     const double s = 2.0 * sigma * sigma;
     double *result;
@@ -646,7 +647,6 @@ gaussian_coeffs(int radius, double sigmaArg, int *countPtr) {
         result[n] /= sum;
     }/* for */
 
-    *countPtr = count;
     return result;
 }/* gaussian_coeffs*/
 
@@ -721,7 +721,6 @@ BGD_DECLARE(gdImagePtr)
 gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
     gdImagePtr tmp = NULL, result = NULL;
     double *coeffs;
-    int numcoeffs = 0;
 
     if (radius < 1) {
         return NULL;
@@ -733,7 +732,7 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
 	}/* if */
 
     /* Compute the coefficients. */
-    coeffs = gaussian_coeffs(radius, sigma, &numcoeffs);
+    coeffs = gaussian_coeffs(radius, sigma);
     if (!coeffs) {
         return NULL;
     }/* if */
@@ -741,7 +740,7 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
     {
         int n;
         printf("coeffs = {");
-        for (n = 0; n < numcoeffs; n++) {
+        for (n = 0; n < 2*radius + 1; n++) {
             printf("%lf,", coeffs[n]);
         }
         printf("}\n");
@@ -750,12 +749,12 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
-    applyCoeffs(src, tmp, coeffs, numcoeffs, HORIZONTAL);
+    applyCoeffs(src, tmp, coeffs, radius, HORIZONTAL);
 
     /* Apply the filter vertically. */
     result = gdImageCreateTrueColor(src->sx, src->sy);
     if (result) {
-        applyCoeffs(tmp, result, coeffs, numcoeffs, VERTICAL);
+        applyCoeffs(tmp, result, coeffs, radius, VERTICAL);
     }/* if */
 
     gdImageDestroy(tmp);
