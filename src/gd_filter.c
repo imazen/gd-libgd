@@ -614,6 +614,8 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
+//#define BLUR_DEBUG
+
 /* Return an array of coefficients for 'radius' and 'sigma' (sigma >=
  * 0 means compute it).  Result length is 2*radius+1. */
 static double *
@@ -623,9 +625,9 @@ gaussian_coeffs(int radius, double sigmaArg) {
     double *result;
     double sum = 0;
     int x, y, n, count;
-
+#ifdef BLUR_DEBUG
     printf("sigma = %lf\n", sigma);
-
+#endif
     count = 2*radius + 1;
 
     result = gdMalloc(sizeof(double) * count);
@@ -640,9 +642,9 @@ gaussian_coeffs(int radius, double sigmaArg) {
         result[x + radius] = coeff;
     }/* for */
 
-    
+#ifdef BLUR_DEBUG    
     printf("coeff sum = %lf\n", sum);
-    
+#endif    
     for (n = 0; n < count; n++) {
         result[n] /= sum;
     }/* for */
@@ -737,6 +739,7 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
         return NULL;
     }/* if */
 
+#ifdef BLUR_DEBUG
     {
         int n;
         printf("coeffs = {");
@@ -745,6 +748,7 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
         }
         printf("}\n");
     }
+#endif
 
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
