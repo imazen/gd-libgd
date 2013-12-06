@@ -720,21 +720,34 @@ gdImageCopyGaussianBlurred(gdImagePtr src, int radius, double sigma)
 {
     gdImagePtr tmp = NULL, result = NULL;
     double *coeffs;
+    int freeSrc = 0;
 
     if (radius < 1) {
         return NULL;
     }/* if */
-
-	/* Convert to truecolor if it isn't; this code requires it. */
-	if (!src->trueColor) {
-		gdImagePaletteToTrueColor(src);
-	}/* if */
 
     /* Compute the coefficients. */
     coeffs = gaussian_coeffs(radius, sigma);
     if (!coeffs) {
         return NULL;
     }/* if */
+
+    /* If the image is not truecolor, we first make a truecolor
+     * scratch copy. */
+	if (!src->trueColor) {
+        int tcstat;
+
+        src = gdImageClone(src);
+        if (!src) return NULL;
+
+        tcstat = gdImagePaletteToTrueColor(src);
+        if (!tcstat) {
+            gdImageDestroy(src);
+            return NULL;
+        }/* if */
+		
+        freeSrc = 1;
+	}/* if */
 
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
@@ -748,6 +761,7 @@ gdImageCopyGaussianBlurred(gdImagePtr src, int radius, double sigma)
     }/* if */
 
     gdImageDestroy(tmp);
+    if (freeSrc) gdImageDestroy(src);
 
     return result;
 }/* gdImageCopyGaussianBlurred*/
