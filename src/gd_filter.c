@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+
+#define NDEBUG  /* Uncomment to enable assertions. */
 #include <assert.h>
 
 typedef int (BGD_STDCALL *FuncPtr)(gdImagePtr, int, int);
@@ -614,8 +616,6 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 
 /* ======================== Experimental code ======================== */
 
-//#define BLUR_DEBUG
-
 /* Return an array of coefficients for 'radius' and 'sigma' (sigma >=
  * 0 means compute it).  Result length is 2*radius+1. */
 static double *
@@ -624,10 +624,8 @@ gaussian_coeffs(int radius, double sigmaArg) {
     const double s = 2.0 * sigma * sigma;
     double *result;
     double sum = 0;
-    int x, y, n, count;
-#ifdef BLUR_DEBUG
-    printf("sigma = %lf\n", sigma);
-#endif
+    int x, n, count;
+
     count = 2*radius + 1;
 
     result = gdMalloc(sizeof(double) * count);
@@ -642,9 +640,6 @@ gaussian_coeffs(int radius, double sigmaArg) {
         result[x + radius] = coeff;
     }/* for */
 
-#ifdef BLUR_DEBUG    
-    printf("coeff sum = %lf\n", sum);
-#endif    
     for (n = 0; n < count; n++) {
         result[n] /= sum;
     }/* for */
@@ -699,7 +694,7 @@ applyCoeffsLine(gdImagePtr src, gdImagePtr dst, int line, int linelen,
 }/* applyCoeffsLine*/
 
 
-static inline void
+static void
 applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius, 
             gdAxis axis)
 {
@@ -719,8 +714,10 @@ applyCoeffs(gdImagePtr src, gdImagePtr dst, double *coeffs, int radius,
 }/* applyCoeffs*/
 
 
+
 BGD_DECLARE(gdImagePtr)
-gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
+gdImageCopyGaussianBlurred(gdImagePtr src, int radius, double sigma)
+{
     gdImagePtr tmp = NULL, result = NULL;
     double *coeffs;
 
@@ -739,17 +736,6 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
         return NULL;
     }/* if */
 
-#ifdef BLUR_DEBUG
-    {
-        int n;
-        printf("coeffs = {");
-        for (n = 0; n < 2*radius + 1; n++) {
-            printf("%lf,", coeffs[n]);
-        }
-        printf("}\n");
-    }
-#endif
-
     /* Apply the filter horizontally. */
     tmp = gdImageCreateTrueColor(src->sx, src->sy);
     if (!tmp) return NULL;
@@ -764,5 +750,5 @@ gdImageGaussianBlur2(gdImagePtr src, int radius, double sigma) {
     gdImageDestroy(tmp);
 
     return result;
-}/* gdImageGaussianBlur2*/
+}/* gdImageCopyGaussianBlurred*/
 
