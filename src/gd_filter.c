@@ -614,7 +614,7 @@ BGD_DECLARE(int) gdImageSmooth(gdImagePtr im, float weight)
 }
 
 
-/* ======================== Experimental code ======================== */
+/* ======================== Gaussian Blur Code ======================== */
 
 /* Return an array of coefficients for 'radius' and 'sigma' (sigma >=
  * 0 means compute it).  Result length is 2*radius+1. */
