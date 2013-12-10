@@ -6,20 +6,24 @@
 
 #define WIDTH 300
 #define HEIGHT 200
-#define LX (WIDTH/2)
-#define LY (HEIGHT/2)
+#define LX (WIDTH/2)    // Line X
+#define LY (HEIGHT/2)   // Line Y
+#define HT 3            // Half of line-thickness
 
-#define CLOSE_ENOUGH (-1)
-#define PIXEL_CLOSE_ENOUGH 1
+#define CLOSE_ENOUGH 0
+#define PIXEL_CLOSE_ENOUGH 0
 
 
 void
 save(gdImagePtr im, const char *filename) {
+#if 0   // uncomment to write out some intermediate images
     FILE *out;
 
     out = fopen(filename, "wb");
     gdImagePng(im, out);
     fclose(out);
+#endif
+    im, filename;
 }/* save*/
 
 
@@ -53,7 +57,6 @@ void mkblack(gdImagePtr ptr)
 gdImagePtr mkcross() {
     gdImagePtr im;
     int fg, n;
-    const int HT = 3;
 
     im = mkwhite(WIDTH, HEIGHT);
     fg = gdImageColorAllocate(im, 0, 0, 0);
@@ -147,17 +150,38 @@ void do_crosstest()
     save(blurred, "blurredcross.png");
 
     /* These spots shouldn't be affected. */
-    gdTestAssert(whitecmp(im, blurred, 5, 5) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, WIDTH-5, 5) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, 5, HEIGHT-5) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, WIDTH-5, HEIGHT-5) < PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, 5, 5) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, WIDTH-5, 5) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, 5, HEIGHT-5) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, WIDTH-5, HEIGHT-5) <= PIXEL_CLOSE_ENOUGH);
+
+//    printf("%d %d %d %d\n", whitecmp(im, blurred, 0, 0), whitecmp(im, blurred, WIDTH-1, 0),
+//         whitecmp(im, blurred, 0, HEIGHT-1), whitecmp(im, blurred, WIDTH-1, HEIGHT-1));
 
     /* Ditto these, right in the corners */
-    gdTestAssert(whitecmp(im, blurred, 0, 0) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, WIDTH-1, 0) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, 0, HEIGHT-1) < PIXEL_CLOSE_ENOUGH);
-    gdTestAssert(whitecmp(im, blurred, WIDTH-1, HEIGHT-1) < PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, 0, 0) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, WIDTH-1, 0) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, 0, HEIGHT-1) <= PIXEL_CLOSE_ENOUGH);
+    gdTestAssert(whitecmp(im, blurred, WIDTH-1, HEIGHT-1) <= PIXEL_CLOSE_ENOUGH);
 
+    /* Now, poking let's poke around the blurred lines. */
+
+    /* Vertical line gets darker when approached from the left. */
+    gdTestAssert(getwhite(blurred, 1, 1) > getwhite(blurred, LX - (HT - 1), 1));
+    gdTestAssert(getwhite(blurred, LX - 2, 1) > getwhite(blurred, LX - 1, 1));
+
+    /* ...and lighter when moving away to the right. */
+    gdTestAssert(getwhite(blurred, LX + 2, 1) >= getwhite(blurred, LX + 1, 1));
+    gdTestAssert(getwhite(blurred, LX + 3, 1) >= getwhite(blurred, LX + 2, 1));
+    gdTestAssert(getwhite(blurred, WIDTH - 1, 1) > getwhite(blurred, LX + 1, 1));
+
+    /* And the same way, vertically */
+    gdTestAssert(getwhite(blurred, 1, 1) > getwhite(blurred, 1, LY - (HT - 1)));
+    gdTestAssert(getwhite(blurred, 1, LY - (HT - 1)) > getwhite(blurred, 1, LY - (HT - 2)));
+
+    gdTestAssert(getwhite(blurred, 1, LY)     <= getwhite(blurred, 1, LY + 1));
+    gdTestAssert(getwhite(blurred, 1, LY + 1) <  getwhite(blurred, 1, LY + 3));
+    gdTestAssert(getwhite(blurred, 1, LY + 3) <  getwhite(blurred, 1, HEIGHT-1));
 
 }/* do_crosstest*/
 
