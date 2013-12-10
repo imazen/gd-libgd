@@ -16,14 +16,15 @@
 
 void
 save(gdImagePtr im, const char *filename) {
-#if 0   // uncomment to write out some intermediate images
+#if 0   // set TRUE to write out some intermediate images
     FILE *out;
 
     out = fopen(filename, "wb");
     gdImagePng(im, out);
     fclose(out);
-#endif
+#else
     im, filename;
+#endif
 }/* save*/
 
 
