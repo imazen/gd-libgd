@@ -1,0 +1,29 @@
+install:
+  # fetch deps
+  - git clone https://github.com/imazen/gd-win-dependencies.git --branch september-2014 --depth 1
+
+
+build_script:
+  - "\"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall\""
+  - nmake /f windows\Makefile.vc all
+  - "\"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall\" x86_amd64"
+  - set PLATFORM=64
+  - nmake /f windows\Makefile.vc all
+
+
+after_build:
+  - 7z a libgd-x86.zip .\build_x86\libgd.dll .\build_x86\libgd.lib .\build_x86\libgd_a.lib
+  - 7z a libgd-x64.zip .\build_x64\libgd.dll .\build_x64\libgd.lib .\build_x64\libgd_a.lib
+
+
+test_script:
+  - windows\run_tests
+  - set PLATFORM=64
+  - windows\run_tests
+
+
+artifacts:
+  - path: libgd-x86.zip
+    name: libgd-x86.zip
+  - path: libgd-x64.zip
+    name: libgd-x64.zip
