@@ -12,9 +12,9 @@ CDEFS=-DHAVE_ERRNO_H -DHAVE_ICONV -DHAVE_ICONV_H		\
 -DHAVE_STDINT_H -DHAVE_STDLIB_H -DHAVE_VISIBILITY -DICONV_CONST
 
 # GnuWin32 libs should all be installed in one place.
-GNUDIR=/c/tools/GnuWin32
-GNUINC=-I$(GNUDIR)/include
-GNULIB=-L$(GNUDIR)/lib
+#GNUDIR=/C/Qt/Qt5.3.1/Tools/mingw482_32/i686-w64-mingw32
+#GNUINC=-I$(GNUDIR)/include
+#GNULIB=-L$(GNUDIR)/lib
 GNUDLL=$(GNUDIR)/bin/
 
 # Various optional components.  Comment-out the ones you don't have
@@ -22,26 +22,26 @@ GNUDLL=$(GNUDIR)/bin/
 # assumes GnuWin32 packages installed in /c/Program Files/GnuWin32.
 JPEG_D=-DHAVE_LIBJPEG
 JPEG_L=-ljpeg
-JPEG_I=$(GNUINC)
-JPEG_LIBDIR=$(GNULIB)
+JPEG_I=-I"../gd-msys-dependencies/libjpeg/include"
+JPEG_LIBDIR=-L"../gd-msys-dependencies/libjpeg/lib"
 JPEG_DLLDIR=$(GNUDLL)
 
 PNG_D=-DHAVE_LIBPNG
 PNG_L=-lpng
-PNG_I=				#$(GNUINC)
-PNG_LIBDIR=			#$(GNULIB)
+PNG_I=				-I"../gd-msys-dependencies/libpng/include"
+PNG_LIBDIR=			-L"../gd-msys-dependencies/libpng/lib"
 PNG_DLLDIR=			#$(GNUDLL)
 
 TIFF_D=-DHAVE_LIBTIFF
 TIFF_L=-ltiff
-TIFF_I=				#$(GNUINC)
-TIFF_LIBDIR=		#$(GNULIB)
+TIFF_I=				-I"../gd-msys-dependencies/libtiff/include"
+TIFF_LIBDIR=		-L"../gd-msys-dependencies/libtiff/lib"
 TIFF_DLLDIR=		#$(GNUDLL)
 
 LIBZ_D=-DHAVE_LIBZ
 LIBZ_L=-lz
 LIBZ_I=				#$(GNUINC)
-LIBZ_LIBDIR=		#$(GNULIB)
+LIBZ_LIBDIR=		-L"../gd-msys-dependencies/zlib/lib"
 LIBZ_DLLDIR=		#$(GNUDLL)
 
 # LIBXPM_D=-DHAVE_LIBXPM
@@ -51,8 +51,8 @@ LIBZ_DLLDIR=		#$(GNUDLL)
 
 FREETYPE_D=-DHAVE_LIBFREETYPE -DHAVE_FT2BUILD_H
 FREETYPE_L=-lfreetype
-FREETYPE_I=$(GNUINC)/freetype2/
-FREETYPE_LIBDIR=	#$(GNULIB)
+FREETYPE_I=-I"../gd-msys-dependencies/libfreetype/include" -I"../gd-msys-dependencies/libfreetype/include/freetype2"
+FREETYPE_LIBDIR=	-L"../gd-msys-dependencies/libfreetype/lib"
 FREETYPE_DLLDIR=	#$(GNUDLL)
 
 # FONTCONFIG_D=-DHAVE_LIBFONTCONFIG
@@ -61,7 +61,7 @@ FREETYPE_DLLDIR=	#$(GNUDLL)
 # FONTCONFIG_LIBDIR=
 
 ALL_D=$(FREETYPE_D) $(JPEG_D) $(PNG_D) $(TIFF_D) $(LIBZ_D) $(LIBXPM_D)
-ALL_L=$(FREETYPE_L) $(JPEG_L) $(PNG_L) $(TIFF_L) $(LIBZ_L) $(LIBXPM_L)
+ALL_L=$(FREETYPE_L) $(JPEG_L) $(PNG_L) $(TIFF_L) $(LIBZ_L) $(LIBXPM_L)-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -liconv
 ALL_I=$(FREETYPE_I) $(JPEG_I) $(PNG_I) $(TIFF_I) $(LIBZ_I) $(LIBXPM_I)
 ALL_LIBDIR=$(FREETYPE_LIBDIR) $(JPEG_LIBDIR) $(PNG_LIBDIR) $(TIFF_LIBDIR) \
 	$(LIBZ_LIBDIR) $(LIBXPM_LIBDIR)
@@ -72,7 +72,7 @@ ALL_DLLDIR=$(FREETYPE_DLLDIR) $(JPEG_DLLDIR) $(PNG_DLLDIR) $(TIFF_DLLDIR) \
 # linking because that reduces the number of dependencies.  However,
 # libiconv is released under the GNU GPL which may impose extra
 # restrictions on redistribution.
-LIBICONV=/c/MinGW/lib/libiconv.a
+#LIBICONV=-L"../gd-msys-dependencies/libiconv/libiconv.a"
 #LIBICONV=-liconv
 
 
@@ -107,30 +107,24 @@ TARGET=$(TARGETBASE).dll
 TARGET_A=$(TARGETBASE).a
 
 all:
-	(cd ../../src; make -f ../windows/msys/Makefile $(TARGET))
+	(cd ../../src && mingw32-make -f ../windows/msys/Makefile $(TARGET))
 
 # BUG: this sucks in all the DLLs in the lib installation directory,
 # including those you may not need.
 dist: all
-	(cd ../..; $(ZIP) $(DIST) src/*.dll src/*.a $$(for d in $(ALL_DLLDIR); do echo $$d/*.dll; done | sort -u) )
+	(cd ../.. && $(ZIP) $(DIST) src/*.dll src/*.a $$(for d in $(ALL_DLLDIR); do echo $$d/*.dll; done | sort -u) )
 
 
 clean:
-	-rm ../../$(DIST)
-	(cd ../../src; rm -f *.dll *.a $(OBJ) deps.mk; true)
+	del /q /f ..\..\$(DIST)
+	(cd ../../src && del /q /f *.dll *.a $(OBJ))
 
 check: all
 	bash run_tests.sh "$(GNUDIR)/bin" "$(INCLUDES)"
 
-deps.mk:
-	[ -f gd.h ] # Sanity check: we're in src/, right?
-	gcc -MM $(DEFS) $(INCLUDES) $(SRC) > deps.mk
-
 $(TARGET): $(OBJ)
 	gcc -shared -o $(TARGET) $(LDFLAGS) -Wl,--out-implib,$(TARGET_A) \
 		$(OBJ) $(LIBS)
-
-include deps.mk
 
 
 
