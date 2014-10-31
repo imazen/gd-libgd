@@ -505,13 +505,16 @@ BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtx (gdIOCtx * infile);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtxEx (gdIOCtx * infile, int ignore_warning);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegPtr (int size, void *data);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegPtrEx (int size, void *data, int ignore_warning);
+#ifdef HAVE_LIBVPX
 BGD_DECLARE(gdImagePtr) gdImageCreateFromWebp (FILE * inFile);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromWebpPtr (int size, void *data);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromWebpCtx (gdIOCtx * infile);
-
+#endif
+#ifdef HAVE_LIBTIFF
 BGD_DECLARE(gdImagePtr) gdImageCreateFromTiff(FILE *inFile);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromTiffCtx(gdIOCtx *infile);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromTiffPtr(int size, void *data);
+#endif
 
 BGD_DECLARE(gdImagePtr) gdImageCreateFromTga( FILE * fp );
 BGD_DECLARE(gdImagePtr) gdImageCreateFromTgaCtx(gdIOCtx* ctx);
@@ -891,9 +894,11 @@ BGD_DECLARE(void) gdImageGif (gdImagePtr im, FILE * out);
 BGD_DECLARE(void) gdImagePng (gdImagePtr im, FILE * out);
 BGD_DECLARE(void) gdImagePngCtx (gdImagePtr im, gdIOCtx * out);
 BGD_DECLARE(void) gdImageGifCtx (gdImagePtr im, gdIOCtx * out);
+#ifdef HAVE_LIBTIFF
 BGD_DECLARE(void) gdImageTiff(gdImagePtr im, FILE *outFile);
 BGD_DECLARE(void *) gdImageTiffPtr(gdImagePtr im, int *size);
 BGD_DECLARE(void) gdImageTiffCtx(gdImagePtr image, gdIOCtx *out);
+#endif
 
 BGD_DECLARE(void *) gdImageBmpPtr(gdImagePtr im, int *size, int compression);
 BGD_DECLARE(void) gdImageBmp(gdImagePtr im, FILE *outFile, int compression);
@@ -928,11 +933,13 @@ BGD_DECLARE(void) gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality);
 /* Best to free this memory with gdFree(), not free() */
 BGD_DECLARE(void *) gdImageJpegPtr (gdImagePtr im, int *size, int quality);
 
+#ifdef HAVE_LIBVPX
 BGD_DECLARE(void) gdImageWebpEx (gdImagePtr im, FILE * outFile, int quantization);
 BGD_DECLARE(void) gdImageWebp (gdImagePtr im, FILE * outFile);
 BGD_DECLARE(void *) gdImageWebpPtr (gdImagePtr im, int *size);
 BGD_DECLARE(void *) gdImageWebpPtrEx (gdImagePtr im, int *size, int quantization);
 BGD_DECLARE(void) gdImageWebpCtx (gdImagePtr im, gdIOCtx * outfile, int quantization);
+#endif
 
 
 /**
