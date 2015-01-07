@@ -65,11 +65,11 @@ deps=()
 targ=()
 post=()
 
-[ $tbsd_zlib_repo ]          || export tbsd_zlib_repo="https://github.com/imazen/zlib"
-[ $tbsd_libpng_repo ]        || export tbsd_libpng_repo="https://github.com/imazen/libpng"
-[ $tbsd_libjpeg_turbo_repo ] || export tbsd_libjpeg_turbo_repo="https://github.com/imazen/libjpeg-turbo libjpeg_turbo"
-[ $tbsd_libtiff_repo ]       || export tbsd_libtiff_repo="https://github.com/imazen/libtiff"
-[ $tbsd_freetype_repo ]      || export tbsd_freetype_repo="https://github.com/imazen/freetype"
+[ $tbsd_zlib_repo ]          || export tbsd_zlib_repo="git clone https://github.com/imazen/zlib_shallow && cd zlib_shallow && git reset --hard b041a7f485778d7f5a49ecb48b591325caa9ae81"
+[ $tbsd_libpng_repo ]        || export tbsd_libpng_repo="git clone https://github.com/imazen/libpng && cd libpng && git reset --hard bcec51049eded7b77805710b9451e12a1887faa4"
+[ $tbsd_libjpeg_turbo_repo ] || export tbsd_libjpeg_turbo_repo="git clone https://github.com/imazen/libjpeg-turbo libjpeg_turbo && cd libjpeg_turbo && git reset --hard 48903948aba941ca00e23457d8569727d78cd1f7"
+[ $tbsd_libtiff_repo ]       || export tbsd_libtiff_repo="git clone https://github.com/imazen/libtiff && cd libtiff && git reset --hard e07d98e728a36f091bd5546b7a059c1d38efda39"
+[ $tbsd_freetype_repo ]      || export tbsd_freetype_repo="git clone https://github.com/imazen/freetype_shallow && cd freetype_shallow && git reset --hard 89ff213d3b6c08b80da46c119cc8c263572ac981"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then cp="rsync"
 else cp="cp"
@@ -123,8 +123,7 @@ process_deps()
     
     if [ ${!i_dep_built} -eq 0 ]
     then
-      git clone ${!i_dep_repo} --depth 1
-      cd $dep || exit 1
+      eval ${!i_dep_repo} || exit 1
       
       thumbs="./thumbs.sh"
       [ ! -f $thumbs ] && thumbs=$(find . -name thumbs.sh -maxdepth 2)
