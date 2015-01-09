@@ -3,10 +3,7 @@ language: cpp
 env:
   - tbs_arch=x86
   - tbs_arch=x64
-  global:
-   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-   #   via the "travis encrypt" command using the project repo's public key
-   - secure: "UtKJmCEbXXn+X2ofsmeDnq98ADFnX32/9r4vHmRJLHN7XH6OE9fXrj+ixhBxIl869iY9muyqLvH7l+6WxNbdNOT0J0CiZsD6PwjULWhIXg7XD/891FzmshxW4TrI4mPHkxbKPMjZEVh4ZVOoYtbFX66vm+x8eoZL5JjOeLFC9Gw="
+  - secure: "UtKJmCEbXXn+X2ofsmeDnq98ADFnX32/9r4vHmRJLHN7XH6OE9fXrj+ixhBxIl869iY9muyqLvH7l+6WxNbdNOT0J0CiZsD6PwjULWhIXg7XD/891FzmshxW4TrI4mPHkxbKPMjZEVh4ZVOoYtbFX66vm+x8eoZL5JjOeLFC9Gw="
 
 os:
   - linux
