@@ -25,15 +25,15 @@
 # Global settings are stored in env vars
 # Should be inherited
 
-[ $tbs_conf ]           || export tbs_conf=Release
-[ $tbs_arch ]           || export tbs_arch=x64
-[ $tbs_tools ]          || export tbs_tools=gnu
-[ $tbs_static_runtime ] || export tbs_static_runtime=0
+[[ $tbs_conf ]]           || export tbs_conf=Release
+[[ $tbs_arch ]]           || export tbs_arch=x64
+[[ $tbs_tools ]]          || export tbs_tools=gnu
+[[ $tbs_static_runtime ]] || export tbs_static_runtime=0
 
-[ $tbs_gd_png ]         || export tbs_gd_png=1
-[ $tbs_gd_jpeg ]        || export tbs_gd_jpeg=1
-[ $tbs_gd_freetype ]    || export tbs_gd_freetype=1
-[ $tbs_gd_tiff ]        || export tbs_gd_tiff=1
+[[ $tbs_gd_png ]]         || export tbs_gd_png=1
+[[ $tbs_gd_jpeg ]]        || export tbs_gd_jpeg=1
+[[ $tbs_gd_freetype ]]    || export tbs_gd_freetype=1
+[[ $tbs_gd_tiff ]]        || export tbs_gd_tiff=1
 
 
 # tbsd_* contains dep related settings
@@ -65,11 +65,11 @@ deps=()
 targ=()
 post=()
 
-[ $tbsd_zlib_repo ]          || export tbsd_zlib_repo="git clone https://github.com/imazen/zlib_shallow && cd zlib_shallow && git reset --hard b041a7f485778d7f5a49ecb48b591325caa9ae81"
-[ $tbsd_libpng_repo ]        || export tbsd_libpng_repo="git clone https://github.com/imazen/libpng && cd libpng && git reset --hard bcec51049eded7b77805710b9451e12a1887faa4"
-[ $tbsd_libjpeg_turbo_repo ] || export tbsd_libjpeg_turbo_repo="git clone https://github.com/imazen/libjpeg-turbo libjpeg_turbo && cd libjpeg_turbo && git reset --hard 48903948aba941ca00e23457d8569727d78cd1f7"
-[ $tbsd_libtiff_repo ]       || export tbsd_libtiff_repo="git clone https://github.com/imazen/libtiff && cd libtiff && git reset --hard e07d98e728a36f091bd5546b7a059c1d38efda39"
-[ $tbsd_freetype_repo ]      || export tbsd_freetype_repo="git clone https://github.com/imazen/freetype_shallow && cd freetype_shallow && git reset --hard 89ff213d3b6c08b80da46c119cc8c263572ac981"
+[[ $tbsd_zlib_repo ]]          || export tbsd_zlib_repo="git clone https://github.com/imazen/zlib_shallow ; cd zlib_shallow && git reset --hard b041a7f485778d7f5a49ecb48b591325caa9ae81"
+[[ $tbsd_libpng_repo ]]        || export tbsd_libpng_repo="git clone https://github.com/imazen/libpng ; cd libpng && git reset --hard 62957cf48c945fffb62a80ae6bf88037b5697947"
+[[ $tbsd_libjpeg_turbo_repo ]] || export tbsd_libjpeg_turbo_repo="git clone https://github.com/imazen/libjpeg-turbo libjpeg_turbo ; cd libjpeg_turbo && git reset --hard 2bb3c77c6963dae603ed86a9a32f4ab5fbed2e9e"
+[[ $tbsd_libtiff_repo ]]       || export tbsd_libtiff_repo="git clone https://github.com/imazen/libtiff ; cd libtiff && git reset --hard e07d98e728a36f091bd5546b7a059c1d38efda39"
+[[ $tbsd_freetype_repo ]]      || export tbsd_freetype_repo="git clone https://github.com/imazen/freetype_shallow ; cd freetype_shallow && git reset --hard 89ff213d3b6c08b80da46c119cc8c263572ac981"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then cp="rsync"
 else cp="cp"
