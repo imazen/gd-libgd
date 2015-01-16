@@ -68,7 +68,7 @@ post=()
 [[ $tbsd_zlib_repo ]]          || export tbsd_zlib_repo="git clone https://github.com/imazen/zlib_shallow ; cd zlib_shallow && git reset --hard b041a7f485778d7f5a49ecb48b591325caa9ae81"
 [[ $tbsd_libpng_repo ]]        || export tbsd_libpng_repo="git clone https://github.com/imazen/libpng ; cd libpng && git reset --hard 62957cf48c945fffb62a80ae6bf88037b5697947"
 [[ $tbsd_libjpeg_turbo_repo ]] || export tbsd_libjpeg_turbo_repo="git clone https://github.com/imazen/libjpeg-turbo libjpeg_turbo ; cd libjpeg_turbo && git reset --hard 2bb3c77c6963dae603ed86a9a32f4ab5fbed2e9e"
-[[ $tbsd_libtiff_repo ]]       || export tbsd_libtiff_repo="git clone https://github.com/imazen/libtiff ; cd libtiff && git reset --hard e07d98e728a36f091bd5546b7a059c1d38efda39"
+[[ $tbsd_libtiff_repo ]]       || export tbsd_libtiff_repo="git clone https://github.com/imazen/libtiff ; cd libtiff && git reset --hard 5bf56a4365fac0293b83fecab90e4bc588ea1e53"
 [[ $tbsd_freetype_repo ]]      || export tbsd_freetype_repo="git clone https://github.com/imazen/freetype_shallow ; cd freetype_shallow && git reset --hard 89ff213d3b6c08b80da46c119cc8c263572ac981"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then cp="rsync"
